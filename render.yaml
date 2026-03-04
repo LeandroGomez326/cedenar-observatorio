@@ -6,7 +6,7 @@ services:
     buildCommand: |
       chmod +x render-build.sh
       ./render-build.sh
-    startCommand: gunicorn backend.wsgi:application
+    startCommand: gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: SECRET_KEY
         generateValue: true
