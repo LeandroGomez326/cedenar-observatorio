@@ -1,9 +1,12 @@
 asgiref==3.11.1
+certifi==2026.2.25
+charset-normalizer==3.4.4
 dj-database-url==3.1.2
 Django==6.0.3
 django-ratelimit==4.1.0
 et_xmlfile==2.0.0
 gunicorn==25.1.0
+idna==3.11
 joblib==1.5.3
 numpy==2.4.2
 openpyxl==3.1.5
@@ -12,10 +15,12 @@ pandas==3.0.1
 psycopg2-binary==2.9.11
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
+requests==2.32.5
 scikit-learn==1.8.0
 scipy==1.17.1
 six==1.17.0
 sqlparse==0.5.5
 threadpoolctl==3.6.0
 tzdata==2025.3
+urllib3==2.6.3
 whitenoise==6.12.0
