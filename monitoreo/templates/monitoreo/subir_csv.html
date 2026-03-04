@@ -1,0 +1,28 @@
+{% extends 'monitoreo/base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow mt-10">
+    <h2 class="text-2xl font-bold mb-4">Subir CSV para {{ proyecto.nombre }}</h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Seleccionar archivo CSV</label>
+            <input type="file" name="archivo" accept=".csv,.xlsx,.xls" required
+                   class="w-full border rounded p-2">
+        </div>
+        
+        <div class="flex gap-2">
+            <button type="submit" 
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Subir y procesar
+            </button>
+            <a href="{% url 'lista_proyectos' %}" 
+               class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

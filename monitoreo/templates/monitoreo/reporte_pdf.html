@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte - {{ proyecto.nombre }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2cm;
+            font-size: 12px;
+        }
+        h1 {
+            color: #2563EB;
+            text-align: center;
+            font-size: 24px;
+        }
+        h2 {
+            color: #1F2937;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        .info-box {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #2563EB;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background: #2563EB;
+            color: white;
+            padding: 8px;
+            text-align: left;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .consumo { color: #EF4444; font-weight: bold; }
+        .generacion { color: #10B981; font-weight: bold; }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 10px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>Observatorio transición energética CEDENAR</h1>
+    <p style="text-align: center;">Reporte Mensual</p>
+
+    <h2>{{ proyecto.nombre }}</h2>
+    <p><strong>Código:</strong> {{ proyecto.codigo_medidor }}</p>
+    <p><strong>Ubicación:</strong> {{ proyecto.ubicacion|default:"-" }}</p>
+    <p><strong>Período:</strong> {{ nombre_mes }} {{ año }}</p>
+
+    <div class="info-box">
+        <p><strong>Consumo Total:</strong> <span class="consumo">{{ consumo_mes }} kWh</span></p>
+        <p><strong>Generación Total:</strong> <span class="generacion">{{ generacion_mes }} kWh</span></p>
+        <p><strong>Balance:</strong> 
+            <span class="{% if balance_mes < 0 %}consumo{% else %}generacion{% endif %}">
+                {{ balance_mes }} kWh
+            </span>
+        </p>
+    </div>
+
+    <h3>Resumen</h3>
+    <table>
+        <tr>
+            <th>Promedio diario</th>
+            <th>Consumo</th>
+            <th>Generación</th>
+            <th>Máximo</th>
+        </tr>
+        <tr>
+            <td>Consumo</td>
+            <td class="consumo">{{ promedio_consumo_diario }} kWh</td>
+            <td></td>
+            <td class="consumo">{{ max_consumo_dia }} kWh</td>
+        </tr>
+        <tr>
+            <td>Generación</td>
+            <td></td>
+            <td class="generacion">{{ promedio_generacion_diario }} kWh</td>
+            <td class="generacion">{{ max_generacion_dia }} kWh</td>
+        </tr>
+    </table>
+
+    <h3>Detalle Diario</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Consumo (kWh)</th>
+                <th>Generación (kWh)</th>
+                <th>Balance (kWh)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dia in datos_diarios %}
+            <tr>
+                <td>{{ dia.fecha }}</td>
+                <td class="consumo">{{ dia.consumo }}</td>
+                <td class="generacion">{{ dia.generacion }}</td>
+                <td class="{% if dia.balance < 0 %}consumo{% else %}generacion{% endif %}">
+                    {{ dia.balance }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Reporte generado el {{ generado_en }}</p>
+        <p>© {% now "Y" %} - Observatorio transición energética CEDENAR</p>
+    </div>
+</body>
+</html>

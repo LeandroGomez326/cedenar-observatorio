@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: cedenar-observatorioTE
+    runtime: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+      python manage.py migrate
+    startCommand: gunicorn backend.wsgi:application
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: RENDER
+        value: True
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cedenar-ote
+          property: connectionString
+
+databases:
+  - name: cedenar-ote
+    plan: free

@@ -1,0 +1,435 @@
+{% extends 'monitoreo/base.html' %}
+
+{% block content %}
+<style>
+    /* Estilos base */
+    .campana-container {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    /* Modo oscuro */
+    .dark-theme .campana-container {
+        background: #1f2937;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+        border: 1px solid #374151;
+    }
+    
+    .dark-theme h1, .dark-theme h2, .dark-theme h3 {
+        color: #f3f4f6;
+    }
+    
+    .dark-theme p {
+        color: #d1d5db;
+    }
+    
+    /* Tarjetas de resumen */
+    .resumen-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 20px;
+        color: white;
+    }
+    
+    .dark-theme .resumen-card {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+    }
+    
+    .stat-card {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.3s;
+    }
+    
+    .dark-theme .stat-card {
+        background: #111827;
+        border: 1px solid #374151;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+    }
+    
+    /* Selector de fecha */
+    .fecha-input {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: #1f2937;
+        transition: all 0.3s;
+    }
+    
+    .dark-theme .fecha-input {
+        background: #374151;
+        border-color: #4b5563;
+        color: #f3f4f6;
+    }
+    
+    .fecha-input:focus {
+        outline: none;
+        ring: 2px solid #3b82f6;
+        border-color: #3b82f6;
+    }
+    
+    /* Botón actualizar */
+    .btn-actualizar {
+        background: #3b82f6;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-actualizar:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(59,130,246,0.3);
+    }
+    
+    .dark-theme .btn-actualizar {
+        background: #3b82f6;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+    }
+    
+    /* Tabla de datos */
+    .tabla-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .dark-theme .tabla-container {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .tabla-header {
+        background: #f9fafb;
+        padding: 12px 16px;
+        font-weight: 600;
+        color: #4b5563;
+    }
+    
+    .dark-theme .tabla-header {
+        background: #111827;
+        color: #e5e7eb;
+    }
+    
+    .tabla-fila {
+        padding: 10px 16px;
+        border-bottom: 1px solid #e5e7eb;
+        transition: background 0.2s;
+    }
+    
+    .dark-theme .tabla-fila {
+        border-bottom-color: #374151;
+        color: #d1d5db;
+    }
+    
+    .tabla-fila:hover {
+        background: #f3f4f6;
+    }
+    
+    .dark-theme .tabla-fila:hover {
+        background: #374151;
+    }
+    
+    /* Valores numéricos */
+    .valor-positivo {
+        color: #10b981;
+        font-weight: 600;
+    }
+    
+    .dark-theme .valor-positivo {
+        color: #34d399;
+    }
+    
+    /* Tooltips de Chart.js en modo oscuro */
+    .dark-theme .chartjs-tooltip {
+        background: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        color: #f3f4f6 !important;
+    }
+</style>
+
+<div class="mb-6">
+    <a href="{% url 'detalle_proyecto' proyecto.id %}" class="text-blue-600 hover:text-blue-800 dark-theme:text-blue-400 dark-theme:hover:text-blue-300">
+        ← Volver al proyecto
+    </a>
+</div>
+
+<div class="campana-container">
+    <div class="flex justify-between items-start mb-6">
+        <div>
+            <h2 class="text-3xl font-bold dark-theme:text-white">{{ proyecto.nombre }}</h2>
+            <p class="text-gray-600 dark-theme:text-gray-300 mt-1">Curva de generación diaria - Forma de campana</p>
+        </div>
+        <span class="px-3 py-1 text-sm font-semibold rounded 
+            {% if proyecto.marca == 'HUAWEI' %}bg-blue-100 text-blue-800 dark-theme:bg-blue-900 dark-theme:text-blue-200
+            {% elif proyecto.marca == 'GROWATT' %}bg-green-100 text-green-800 dark-theme:bg-green-900 dark-theme:text-green-200
+            {% else %}bg-gray-100 text-gray-800 dark-theme:bg-gray-700 dark-theme:text-gray-200{% endif %}">
+            {{ proyecto.marca|default:"Sin marca" }}
+        </span>
+    </div>
+
+    <!-- Tarjetas de resumen mejoradas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="stat-card">
+            <p class="text-sm text-gray-600 dark-theme:text-gray-300 mb-1">⚡ Total generado hoy</p>
+            <p class="text-4xl font-bold text-blue-600 dark-theme:text-blue-400" id="total-dia">0.00 <span class="text-lg font-normal text-gray-500 dark-theme:text-gray-400">kWh</span></p>
+        </div>
+        
+        <div class="stat-card">
+            <p class="text-sm text-gray-600 dark-theme:text-gray-300 mb-1">📈 Pico máximo</p>
+            <p class="text-4xl font-bold text-purple-600 dark-theme:text-purple-400" id="pico-maximo">0.00 <span class="text-lg font-normal text-gray-500 dark-theme:text-gray-400">kWh</span></p>
+        </div>
+    </div>
+
+    <!-- Selector de fecha mejorado -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 p-4 bg-gray-50 dark-theme:bg-gray-800 rounded-lg">
+        <div class="flex items-center gap-3">
+            <span class="text-sm font-medium text-gray-700 dark-theme:text-gray-300">📅 Fecha:</span>
+            <input type="date" id="selector-fecha" class="fecha-input" value="{{ fecha_actual }}">
+        </div>
+        <button id="btn-actualizar" class="btn-actualizar">
+            🔄 Actualizar
+        </button>
+    </div>
+
+    <!-- Gráfica con tema oscuro mejorado -->
+    <div class="h-96 mb-8 p-2 bg-white dark-theme:bg-gray-800 rounded-lg">
+        <canvas id="graficaCampana"></canvas>
+    </div>
+
+    <!-- Rangos horarios mejorados -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark-theme:from-yellow-900/30 dark-theme:to-orange-900/30 p-4 rounded-lg border border-yellow-200 dark-theme:border-yellow-800">
+            <p class="text-xs text-yellow-600 dark-theme:text-yellow-400">🌅 Mañana (6-11h)</p>
+            <p class="text-xl font-bold dark-theme:text-white" id="rango-manana">0 kWh</p>
+        </div>
+        <div class="bg-gradient-to-br from-yellow-100 to-orange-100 dark-theme:from-yellow-800/30 dark-theme:to-orange-800/30 p-4 rounded-lg border border-yellow-300 dark-theme:border-yellow-700">
+            <p class="text-xs text-yellow-700 dark-theme:text-yellow-300">☀️ Mediodía (12-14h)</p>
+            <p class="text-xl font-bold dark-theme:text-white" id="rango-mediodia">0 kWh</p>
+        </div>
+        <div class="bg-gradient-to-br from-orange-50 to-red-50 dark-theme:from-orange-900/30 dark-theme:to-red-900/30 p-4 rounded-lg border border-orange-200 dark-theme:border-orange-800">
+            <p class="text-xs text-orange-600 dark-theme:text-orange-400">🌆 Tarde (15-18h)</p>
+            <p class="text-xl font-bold dark-theme:text-white" id="rango-tarde">0 kWh</p>
+        </div>
+        <div class="bg-gradient-to-br from-gray-50 to-blue-50 dark-theme:from-gray-800/30 dark-theme:to-blue-900/30 p-4 rounded-lg border border-gray-200 dark-theme:border-gray-700">
+            <p class="text-xs text-gray-600 dark-theme:text-gray-400">🌙 Noche (19-23h)</p>
+            <p class="text-xl font-bold dark-theme:text-white" id="rango-noche">0 kWh</p>
+        </div>
+    </div>
+
+    <!-- Tabla con diseño mejorado -->
+    <div class="mt-8">
+        <h3 class="text-lg font-semibold mb-4 dark-theme:text-white">📊 Generación por hora</h3>
+        <div class="tabla-container">
+            <table class="w-full">
+                <thead class="tabla-header">
+                    <tr>
+                        <th class="text-left py-3 px-4">Hora</th>
+                        <th class="text-right py-3 px-4">Generación (kWh)</th>
+                        <th class="text-left py-3 px-4">Barra</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-horas" class="divide-y divide-gray-200 dark-theme:divide-gray-700">
+                    <!-- Se llenará con JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let chart = null;
+
+function cargarDatosDiarios(fecha) {
+    fetch(`{% url 'api_generacion_diaria' proyecto.id %}?fecha=${fecha}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("📊 Datos diarios:", data);
+            
+            const isDark = document.body.classList.contains('dark-theme');
+            
+            // Actualizar resumen
+            document.getElementById('total-dia').textContent = data.total_dia.toFixed(2);
+            
+            // Calcular pico máximo
+            const maxGen = Math.max(...data.generacion);
+            document.getElementById('pico-maximo').textContent = maxGen.toFixed(2);
+            
+            // Calcular rangos
+            const manana = data.generacion.slice(6, 11).reduce((a, b) => a + b, 0).toFixed(2);
+            const mediodia = data.generacion.slice(11, 14).reduce((a, b) => a + b, 0).toFixed(2);
+            const tarde = data.generacion.slice(14, 18).reduce((a, b) => a + b, 0).toFixed(2);
+            const noche = data.generacion.slice(18, 23).reduce((a, b) => a + b, 0).toFixed(2);
+            
+            document.getElementById('rango-manana').textContent = manana + ' kWh';
+            document.getElementById('rango-mediodia').textContent = mediodia + ' kWh';
+            document.getElementById('rango-tarde').textContent = tarde + ' kWh';
+            document.getElementById('rango-noche').textContent = noche + ' kWh';
+            
+            // Configuración de colores para tema oscuro
+            const textColor = isDark ? '#e5e7eb' : '#1f2937';
+            const gridColor = isDark ? '#374151' : '#e5e7eb';
+            const backgroundColor = isDark ? '#1f2937' : '#ffffff';
+            
+            // Actualizar gráfica
+            const ctx = document.getElementById('graficaCampana').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.horas,
+                    datasets: [{
+                        label: 'Generación (kWh)',
+                        data: data.generacion,
+                        borderColor: isDark ? '#fbbf24' : '#f59e0b',
+                        backgroundColor: isDark ? 'rgba(251, 191, 36, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: isDark ? '#fbbf24' : '#f59e0b',
+                        pointBorderColor: isDark ? '#1f2937' : 'white',
+                        pointBorderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: isDark ? '#1f2937' : 'white',
+                            titleColor: isDark ? '#f3f4f6' : '#1f2937',
+                            bodyColor: isDark ? '#d1d5db' : '#4b5563',
+                            borderColor: isDark ? '#374151' : '#e5e7eb',
+                            borderWidth: 1,
+                            padding: 10,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    return '⚡ ' + context.raw.toFixed(2) + ' kWh';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: true,
+                                color: gridColor
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 11 },
+                                color: textColor
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor
+                            },
+                            title: {
+                                display: true,
+                                text: 'kWh',
+                                font: { size: 12 },
+                                color: textColor
+                            },
+                            ticks: {
+                                callback: value => value.toFixed(0),
+                                color: textColor
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Actualizar tabla
+            let tablaHtml = '';
+            const maxValor = Math.max(...data.generacion);
+            
+            for (let i = 0; i < data.horas.length; i++) {
+                const valor = data.generacion[i];
+                const porcentaje = maxValor > 0 ? (valor / maxValor * 100) : 0;
+                
+                tablaHtml += `
+                    <tr class="tabla-fila">
+                        <td class="px-4 py-2 text-sm dark-theme:text-gray-300">${data.horas[i]}</td>
+                        <td class="px-4 py-2 text-sm text-right font-medium ${valor > 0 ? 'valor-positivo' : 'dark-theme:text-gray-400'}">
+                            ${valor.toFixed(2)} kWh
+                        </td>
+                        <td class="px-4 py-2">
+                            <div class="w-48 bg-gray-200 dark-theme:bg-gray-700 rounded-full h-2">
+                                <div class="bg-yellow-500 dark-theme:bg-yellow-400 h-2 rounded-full" style="width: ${porcentaje}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            document.getElementById('tabla-horas').innerHTML = tablaHtml;
+        })
+        .catch(error => {
+            console.error("❌ Error:", error);
+            document.getElementById('tabla-horas').innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-4 py-4 text-center text-red-500 dark-theme:text-red-400">
+                        Error cargando datos
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Fecha actual
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('selector-fecha').value = hoy;
+    
+    // Cargar datos iniciales
+    cargarDatosDiarios(hoy);
+    
+    // Evento para botón actualizar
+    document.getElementById('btn-actualizar').addEventListener('click', function() {
+        const fecha = document.getElementById('selector-fecha').value;
+        cargarDatosDiarios(fecha);
+    });
+    
+    // Evento para cambiar fecha con Enter
+    document.getElementById('selector-fecha').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const fecha = this.value;
+            cargarDatosDiarios(fecha);
+        }
+    });
+});
+</script>
+{% endblock %}

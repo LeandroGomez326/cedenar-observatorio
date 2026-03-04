@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563EB; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+        .resumen { display: flex; justify-content: space-between; margin: 20px 0; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1; margin: 0 5px; text-align: center; }
+        .card h3 { margin: 0; font-size: 14px; color: #6b7280; }
+        .card .valor { font-size: 24px; font-weight: bold; margin: 5px 0; }
+        .consumo { color: #ef4444; }
+        .generacion { color: #10b981; }
+        .balance { color: #f59e0b; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #e5e7eb; padding: 10px; text-align: left; }
+        td { padding: 8px; border-bottom: 1px solid #e5e7eb; }
+        .footer { text-align: center; color: #6b7280; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reporte Semanal</h1>
+            <p>{{ proyecto.nombre }} ({{ proyecto.codigo_medidor }})</p>
+        </div>
+        
+        <div class="content">
+            <p><strong>Período:</strong> {{ inicio_semana }} - {{ fin_semana }}</p>
+            
+            <div class="resumen">
+                <div class="card">
+                    <h3>Consumo total</h3>
+                    <div class="valor consumo">{{ consumo_semana }} kWh</div>
+                </div>
+                <div class="card">
+                    <h3>Generación total</h3>
+                    <div class="valor generacion">{{ generacion_semana }} kWh</div>
+                </div>
+                <div class="card">
+                    <h3>Balance</h3>
+                    <div class="valor balance">{{ balance_semana }} kWh</div>
+                </div>
+            </div>
+            
+            <div class="resumen">
+                <div class="card">
+                    <h3>Promedio diario consumo</h3>
+                    <div class="valor consumo">{{ consumo_promedio }} kWh</div>
+                </div>
+                <div class="card">
+                    <h3>Promedio diario generación</h3>
+                    <div class="valor generacion">{{ generacion_promedio }} kWh</div>
+                </div>
+            </div>
+            
+            <h3>Detalle diario</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Consumo (kWh)</th>
+                        <th>Generación (kWh)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dia in tabla_dias %}
+                    <tr>
+                        <td>{{ dia.fecha }}</td>
+                        <td>{{ dia.consumo }}</td>
+                        <td>{{ dia.generacion }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <p>Este reporte es generado automáticamente por el Sistema de Monitoreo.</p>
+        </div>
+        
+        <div class="footer">
+            <p>© {% now "Y" %} Observatorio transición energética CEDENAR - Todos los derechos reservados</p>
+        </div>
+    </div>
+</body>
+</html>

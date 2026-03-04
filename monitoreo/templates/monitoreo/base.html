@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Monitoreo{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+    /* Tema oscuro - VERSIÓN MEJORADA */
+    body.dark-theme {
+        background-color: #1a202c;
+        color: #f7fafc;
+    }
+    
+    /* Cards y contenedores */
+    .dark-theme .bg-white,
+    .dark-theme .bg-gray-50,
+    .dark-theme .bg-gray-100 {
+        background-color: #2d3748 !important;
+    }
+    
+    /* Textos principales */
+    .dark-theme .text-gray-900,
+    .dark-theme .text-gray-800,
+    .dark-theme .text-gray-700 {
+        color: #f7fafc !important;
+    }
+    
+    .dark-theme .text-gray-600,
+    .dark-theme .text-gray-500 {
+        color: #cbd5e0 !important;
+    }
+    
+    /* Títulos */
+    .dark-theme h1,
+    .dark-theme h2,
+    .dark-theme h3,
+    .dark-theme h4,
+    .dark-theme .font-bold,
+    .dark-theme .font-semibold {
+        color: #ffffff !important;
+    }
+    
+    /* Tablas */
+    .dark-theme table {
+        background-color: #2d3748;
+        color: #f7fafc;
+    }
+    
+    .dark-theme th {
+        background-color: #4a5568 !important;
+        color: #ffffff !important;
+    }
+    
+    .dark-theme td {
+        border-color: #4a5568 !important;
+        color: #e2e8f0 !important;
+    }
+    
+    /* Bordes */
+    .dark-theme .border,
+    .dark-theme .border-gray-200,
+    .dark-theme .border-gray-300 {
+        border-color: #4a5568 !important;
+    }
+    
+    /* Sombras */
+    .dark-theme .shadow,
+    .dark-theme .shadow-lg,
+    .dark-theme .shadow-sm {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Botones y enlaces */
+    .dark-theme a:not(.bg-blue-600):not(.bg-green-600):not(.bg-red-600):not(.bg-yellow-600) {
+        color: #90cdf4 !important;
+    }
+    
+    .dark-theme a:hover:not(.bg-blue-600):not(.bg-green-600):not(.bg-red-600):not(.bg-yellow-600) {
+        color: #63b3ed !important;
+    }
+    
+    /* Gradientes */
+    .dark-theme .bg-gradient-to-br {
+        background: #2d3748 !important;
+    }
+    
+    .dark-theme .from-blue-50,
+    .dark-theme .to-blue-100 {
+        --tw-gradient-from: #2c5282 !important;
+        --tw-gradient-to: #2a4365 !important;
+    }
+    
+    .dark-theme .from-red-50,
+    .dark-theme .to-red-100 {
+        --tw-gradient-from: #742a2a !important;
+        --tw-gradient-to: #63171b !important;
+    }
+    
+    .dark-theme .from-green-50,
+    .dark-theme .to-green-100 {
+        --tw-gradient-from: #22543d !important;
+        --tw-gradient-to: #1e3a2f !important;
+    }
+    
+    /* Valores numéricos */
+    .dark-theme .text-red-600,
+    .dark-theme .text-red-700,
+    .dark-theme .consumo {
+        color: #fc8181 !important;
+    }
+    
+    .dark-theme .text-green-600,
+    .dark-theme .text-green-700,
+    .dark-theme .generacion {
+        color: #9ae6b4 !important;
+    }
+    
+    .dark-theme .text-blue-600,
+    .dark-theme .text-blue-700 {
+        color: #90cdf4 !important;
+    }
+    
+    .dark-theme .text-yellow-600,
+    .dark-theme .text-yellow-700 {
+        color: #faf089 !important;
+    }
+    
+    /* Inputs y selects */
+    .dark-theme input,
+    .dark-theme select,
+    .dark-theme textarea {
+        background-color: #4a5568 !important;
+        color: #f7fafc !important;
+        border-color: #718096 !important;
+    }
+    
+    .dark-theme input::placeholder,
+    .dark-theme textarea::placeholder {
+        color: #a0aec0 !important;
+    }
+    
+    /* Mensajes de alerta */
+    .dark-theme .bg-green-100 {
+        background-color: #22543d !important;
+        color: #9ae6b4 !important;
+    }
+    
+    .dark-theme .bg-red-100 {
+        background-color: #742a2a !important;
+        color: #fc8181 !important;
+    }
+    
+    .dark-theme .bg-yellow-100 {
+        background-color: #744210 !important;
+        color: #faf089 !important;
+    }
+    
+    .dark-theme .bg-blue-100 {
+        background-color: #2c5282 !important;
+        color: #90cdf4 !important;
+    }
+    
+    /* Botones de acción */
+    .dark-theme button.bg-blue-600 {
+        background-color: #3182ce !important;
+    }
+    
+    .dark-theme button.bg-blue-600:hover {
+        background-color: #2c5282 !important;
+    }
+    
+    .dark-theme button.bg-gray-200 {
+        background-color: #4a5568 !important;
+        color: #f7fafc !important;
+    }
+    
+    .dark-theme button.bg-gray-200:hover {
+        background-color: #2d3748 !important;
+    }
+    
+    /* Enlaces en navbar */
+    .dark-theme nav a {
+        color: #ffffff !important;
+    }
+    
+    .dark-theme nav a:hover {
+        color: #cbd5e0 !important;
+    }
+    
+    /* Tarjetas de resumen */
+    .dark-theme .border-blue-200 {
+        border-color: #2c5282 !important;
+    }
+    
+    .dark-theme .border-red-200 {
+        border-color: #742a2a !important;
+    }
+    
+    .dark-theme .border-green-200 {
+        border-color: #22543d !important;
+    }
+    
+    /* Texto en tarjetas de resumen */
+    .dark-theme .text-blue-700 {
+        color: #90cdf4 !important;
+    }
+    
+    .dark-theme .text-red-700 {
+        color: #fc8181 !important;
+    }
+    
+    .dark-theme .text-green-700 {
+        color: #9ae6b4 !important;
+    }
+
+    /* Loader para cambio de tema */
+    .tema-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+        transition: opacity 0.3s;
+    }
+    
+    body.dark-theme .tema-loader {
+        background: rgba(26, 32, 44, 0.95);
+        color: white;
+    }
+    
+    .loader-content {
+        text-align: center;
+        max-width: 300px;
+    }
+    
+    .loader-spinner {
+        width: 60px;
+        height: 60px;
+        border: 5px solid #e5e7eb;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+    
+    body.dark-theme .loader-spinner {
+        border-color: #4a5568;
+        border-top-color: #90cdf4;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .loader-text {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: #2563eb;
+    }
+    
+    body.dark-theme .loader-text {
+        color: #90cdf4;
+    }
+</style>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-xl font-bold">Observatorio transición energética CEDENAR</h1>
+                    <a href="{% url 'dashboard' %}" class="hover:text-blue-200">Monitoreo</a>
+                    <a href="{% url 'lista_proyectos' %}" class="hover:text-blue-200">Proyectos</a>
+                    <a href="{% url 'estado_servidores' %}" class="hover:text-blue-200">Servidores</a>
+                    <a href="{% url 'mapa_proyectos' %}" class="hover:text-blue-200">Mapa</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Botón de tema -->
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-blue-700 transition-colors">
+                        <svg id="theme-icon-light" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg id="theme-icon-dark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Usuario -->
+                    {% if user.is_authenticated %}
+                        <span class="text-sm font-bold">{{ user.username }}</span>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded text-sm">
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="hover:text-blue-200">Login</a>
+                        <a href="{% url 'registro' %}" class="hover:text-blue-200">Registro</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg 
+                    {% if message.tags == 'success' %}bg-green-100 text-green-700
+                    {% elif message.tags == 'error' %}bg-red-100 text-red-700
+                    {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+
+    <!-- 🔴 NUEVO: Notificaciones en tiempo real 🔴 -->
+    <div id="notificaciones-container" class="fixed top-20 right-4 z-50 space-y-2 w-80"></div>
+    
+    <script>
+    class NotificacionesManager {
+        constructor() {
+            this.container = document.getElementById('notificaciones-container');
+            this.socket = null;
+            this.reconnectAttempts = 0;
+            this.maxReconnectAttempts = 10;
+            this.conectar();
+        }
+        
+        conectar() {
+            const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const url = `${protocolo}//${host}/ws/notificaciones/`;
+            
+            console.log('🔌 Conectando a WebSocket:', url);
+            
+            this.socket = new WebSocket(url);
+            
+            this.socket.onopen = () => {
+                console.log('✅ Conectado a notificaciones en tiempo real');
+                this.reconnectAttempts = 0;
+                this.mostrarNotificacion({
+                    tipo: 'conexion',
+                    titulo: '🔌 Conectado',
+                    mensaje: 'Sistema de notificaciones activado',
+                    nivel: 'success'
+                });
+            };
+            
+            this.socket.onclose = () => {
+                console.log('❌ Desconectado de WebSocket');
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    const tiempo = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+                    console.log(`🔄 Reintentando conexión en ${tiempo/1000}s... (intento ${this.reconnectAttempts})`);
+                    setTimeout(() => this.conectar(), tiempo);
+                }
+            };
+            
+            this.socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            
+            this.socket.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    console.log('📨 Notificación recibida:', data);
+                    this.procesarMensaje(data);
+                } catch (error) {
+                    console.error('Error procesando mensaje:', error);
+                }
+            };
+        }
+        
+        procesarMensaje(data) {
+            if (data.tipo === 'alerta') {
+                this.mostrarNotificacion(data);
+            } else if (data.tipo === 'conexion') {
+                this.mostrarNotificacion(data);
+            }
+        }
+        
+        mostrarNotificacion(data) {
+            const colores = {
+                'success': 'bg-green-500',
+                'warning': 'bg-yellow-500',
+                'error': 'bg-red-500',
+                'info': 'bg-blue-500'
+            };
+            
+            const nivel = data.nivel || 'info';
+            const color = colores[nivel] || colores.info;
+            
+            const notif = document.createElement('div');
+            notif.className = `${color} text-white p-4 rounded-lg shadow-lg transform transition-all duration-500 translate-x-full`;
+            notif.innerHTML = `
+                <div class="flex items-start">
+                    <div class="flex-1">
+                        <p class="font-bold">${data.titulo || 'Notificación'}</p>
+                        <p class="text-sm opacity-90">${data.mensaje}</p>
+                        <p class="text-xs opacity-75 mt-1">${data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString()}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        ✕
+                    </button>
+                </div>
+            `;
+            
+            this.container.appendChild(notif);
+            
+            setTimeout(() => notif.classList.remove('translate-x-full'), 100);
+            
+            setTimeout(() => {
+                if (notif.parentNode) {
+                    notif.classList.add('translate-x-full');
+                    setTimeout(() => notif.remove(), 500);
+                }
+            }, 5000);
+        }
+    }
+    
+    // ============================================
+    // CAMBIO DE TEMA CON REFRESCO DE PÁGINA
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const iconLight = document.getElementById('theme-icon-light');
+        const iconDark = document.getElementById('theme-icon-dark');
+        
+        // Función para mostrar loader
+        function mostrarLoader() {
+            const loader = document.createElement('div');
+            loader.className = 'tema-loader';
+            loader.innerHTML = `
+                <div class="loader-content">
+                    <div class="loader-spinner"></div>
+                    <div class="loader-text">Cambiando tema...</div>
+                    <div style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">Un momento por favor</div>
+                </div>
+            `;
+            document.body.appendChild(loader);
+        }
+        
+        // Verificar tema guardado y aplicar sin recargar (solo al inicio)
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            iconLight.classList.remove('hidden');
+            iconDark.classList.add('hidden');
+        } else {
+            document.body.classList.remove('dark-theme');
+            iconLight.classList.add('hidden');
+            iconDark.classList.remove('hidden');
+        }
+        
+        // Toggle tema con recarga
+        themeToggle.addEventListener('click', function() {
+            // Determinar nuevo tema
+            const esOscuro = document.body.classList.contains('dark-theme');
+            const nuevoTema = esOscuro ? 'light' : 'dark';
+            
+            // Guardar preferencia
+            localStorage.setItem('theme', nuevoTema);
+            
+            // Mostrar loader
+            mostrarLoader();
+            
+            // Recargar página después de un breve delay
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        });
+        
+        // Inicializar notificaciones
+        window.notificaciones = new NotificacionesManager();
+    });
+    </script>
+    
+</body>
+</html>

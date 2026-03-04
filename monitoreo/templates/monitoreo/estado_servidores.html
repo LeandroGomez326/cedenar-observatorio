@@ -1,0 +1,411 @@
+{% extends 'monitoreo/base.html' %}
+
+{% block title %}Estado de Servidores - Observatorio transición energética CEDENAR{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos base */
+    .servidores-container {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    /* Modo oscuro */
+    .dark-theme .servidores-container {
+        background: #1f2937;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+        border: 1px solid #374151;
+    }
+    
+    .dark-theme h1, .dark-theme h2, .dark-theme h3, .dark-theme h4 {
+        color: #f3f4f6;
+    }
+    
+    .dark-theme p, .dark-theme span {
+        color: #d1d5db;
+    }
+    
+    .dark-theme .text-gray-600 {
+        color: #9ca3af !important;
+    }
+    
+    .dark-theme .text-gray-500 {
+        color: #6b7280 !important;
+    }
+    
+    /* Badge de simulación */
+    .simulacion-badge {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 8px 16px;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: 1px solid #fcd34d;
+    }
+    
+    .dark-theme .simulacion-badge {
+        background: #92400e;
+        color: #fef3c7;
+        border-color: #b45309;
+    }
+    
+    /* Tarjetas de resumen */
+    .resumen-card {
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.3s;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .dark-theme .resumen-card {
+        background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        border-color: #374151;
+    }
+    
+    .resumen-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+    }
+    
+    /* Tarjetas de servidor */
+    .servidor-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s;
+        border: 1px solid #e5e7eb;
+        height: 100%;
+    }
+    
+    .dark-theme .servidor-card {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .servidor-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+    }
+    
+    /* Header de tarjeta */
+    .card-header {
+        padding: 20px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .dark-theme .card-header {
+        border-bottom-color: #374151;
+    }
+    
+    /* Estado badge */
+    .estado-badge {
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .estado-conectado {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+    
+    .dark-theme .estado-conectado {
+        background: #064e3b;
+        color: #a7f3d0;
+        border-color: #065f46;
+    }
+    
+    .estado-desconectado {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+    
+    .dark-theme .estado-desconectado {
+        background: #7f1d1d;
+        color: #fecaca;
+        border-color: #991b1b;
+    }
+    
+    /* Información del servidor */
+    .info-section {
+        padding: 20px;
+        background: #f9fafb;
+        margin: 0 20px 20px 20px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .dark-theme .info-section {
+        background: #111827;
+        border-color: #374151;
+    }
+    
+    .info-row {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    
+    .info-label {
+        width: 80px;
+        font-weight: 500;
+        color: #6b7280;
+    }
+    
+    .dark-theme .info-label {
+        color: #9ca3af;
+    }
+    
+    .info-value {
+        color: #1f2937;
+        font-weight: 500;
+    }
+    
+    .dark-theme .info-value {
+        color: #f3f4f6;
+    }
+    
+    /* Última medición */
+    .medicion-box {
+        background: #eff6ff;
+        padding: 16px;
+        margin: 0 20px 20px 20px;
+        border-radius: 12px;
+        border: 1px solid #bfdbfe;
+    }
+    
+    .dark-theme .medicion-box {
+        background: #1e3a8a;
+        border-color: #2563eb;
+    }
+    
+    .medicion-titulo {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1e40af;
+        margin-bottom: 4px;
+    }
+    
+    .dark-theme .medicion-titulo {
+        color: #93c5fd;
+    }
+    
+    .medicion-fecha {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #1e3a8a;
+    }
+    
+    .dark-theme .medicion-fecha {
+        color: #dbeafe;
+    }
+    
+    /* Modo simulación */
+    .simulacion-box {
+        background: #fffbeb;
+        padding: 16px;
+        margin: 0 20px 20px 20px;
+        border-radius: 12px;
+        border: 1px solid #fcd34d;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .dark-theme .simulacion-box {
+        background: #78350f;
+        border-color: #b45309;
+    }
+    
+    .simulacion-icono {
+        font-size: 1.5rem;
+    }
+    
+    .simulacion-texto {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #92400e;
+    }
+    
+    .dark-theme .simulacion-texto {
+        color: #fde68a;
+    }
+    
+    .simulacion-subtexto {
+        font-size: 0.75rem;
+        color: #b45309;
+    }
+    
+    .dark-theme .simulacion-subtexto {
+        color: #fcd34d;
+    }
+    
+    /* Botones de acción */
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: none;
+    }
+    
+    .btn-proyectos {
+        background: #2563eb;
+        color: white;
+    }
+    
+    .dark-theme .btn-proyectos {
+        background: #3b82f6;
+    }
+    
+    .btn-proyectos:hover {
+        background: #1d4ed8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(37,99,235,0.3);
+    }
+    
+    .btn-actualizar {
+        background: #7c3aed;
+        color: white;
+    }
+    
+    .dark-theme .btn-actualizar {
+        background: #8b5cf6;
+    }
+    
+    .btn-actualizar:hover {
+        background: #6d28d9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(124,58,237,0.3);
+    }
+</style>
+
+<div class="mb-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <h2 class="text-3xl font-bold dark-theme:text-white">Estado de Servidores</h2>
+        <span class="simulacion-badge">
+            🔧 MODO SIMULACIÓN
+        </span>
+    </div>
+    <p class="text-gray-600 dark-theme:text-gray-300">Monitoreo de conexión con inversores (datos simulados)</p>
+</div>
+
+<!-- Tarjetas de resumen -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="resumen-card">
+        <h3 class="text-sm font-medium text-gray-600 dark-theme:text-gray-300 mb-2">📊 Total Servicios</h3>
+        <p class="text-4xl font-bold text-blue-600 dark-theme:text-blue-400">{{ total_servicios }}</p>
+    </div>
+    
+    <div class="resumen-card">
+        <h3 class="text-sm font-medium text-gray-600 dark-theme:text-gray-300 mb-2">✅ Servicios Activos</h3>
+        <p class="text-4xl font-bold text-green-600 dark-theme:text-green-400">{{ servicios_activos }}</p>
+    </div>
+    
+    <div class="resumen-card">
+        <h3 class="text-sm font-medium text-gray-600 dark-theme:text-gray-300 mb-2">⏱️ Uptime</h3>
+        <p class="text-4xl font-bold text-purple-600 dark-theme:text-purple-400">{{ porcentaje_uptime }}%</p>
+    </div>
+</div>
+
+<!-- Grid de servidores -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for estado in estados %}
+    <div class="servidor-card">
+        <!-- Header con estado -->
+        <div class="card-header">
+            <h3 class="text-xl font-bold dark-theme:text-white">{{ estado.proyecto.nombre }}</h3>
+            {% if estado.conectado %}
+                <span class="estado-badge estado-conectado">
+                    ✅ {{ estado.mensaje }}
+                </span>
+            {% else %}
+                <span class="estado-badge estado-desconectado">
+                    ❌ Desconectado
+                </span>
+            {% endif %}
+        </div>
+        
+        <!-- Información del proyecto -->
+        <div class="info-section">
+            <div class="info-row">
+                <span class="info-label">Código:</span>
+                <span class="info-value">{{ estado.proyecto.codigo_medidor }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Marca:</span>
+                <span class="info-value">{{ estado.proyecto.marca|default:"No especificada" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Ubicación:</span>
+                <span class="info-value">{{ estado.proyecto.ubicacion|default:"No especificada" }}</span>
+            </div>
+        </div>
+        
+        <!-- Última medición -->
+        <div class="medicion-box">
+            <p class="medicion-titulo">📡 Última medición:</p>
+            {% if estado.ultima_medicion %}
+                <p class="medicion-fecha">
+                    {{ estado.ultima_medicion.fecha_lectura|date:"d/m/Y H:i:s" }}
+                </p>
+            {% else %}
+                <p class="medicion-fecha">
+                    ⚠️ Sin datos registrados
+                </p>
+            {% endif %}
+        </div>
+        
+        <!-- Modo simulación -->
+        <div class="simulacion-box">
+            <span class="simulacion-icono">⚡</span>
+            <div>
+                <p class="simulacion-texto">MODO SIMULACIÓN</p>
+                <p class="simulacion-subtexto">Datos generados para pruebas</p>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center py-12 bg-white dark-theme:bg-gray-800 rounded-lg border dark-theme:border-gray-700">
+        <p class="text-gray-600 dark-theme:text-gray-300">No hay servidores configurados.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Controles de Simulación -->
+<div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark-theme:from-gray-800 dark-theme:to-gray-900 p-6 rounded-lg border border-blue-200 dark-theme:border-gray-700 shadow-lg">
+    <h3 class="text-xl font-bold text-blue-800 dark-theme:text-blue-300 mb-4 flex items-center">
+        <span class="mr-2">🎮</span> Controles de Simulación
+    </h3>
+    <div class="flex flex-wrap gap-4">
+        <a href="{% url 'lista_proyectos' %}" 
+           class="action-btn btn-proyectos">
+            <span>⚙️</span> Gestionar Proyectos
+        </a>
+        <a href="{% url 'estado_servidores' %}" 
+           class="action-btn btn-actualizar">
+            <span>🔄</span> Actualizar Estado
+        </a>
+    </div>
+    <p class="text-sm text-blue-600 dark-theme:text-blue-400 mt-4 bg-blue-100 dark-theme:bg-gray-800 p-3 rounded-lg">
+        ℹ️ Los datos mostrados son simulados para pruebas. Los valores se generan automáticamente.
+    </p>
+</div>
+{% endblock %}

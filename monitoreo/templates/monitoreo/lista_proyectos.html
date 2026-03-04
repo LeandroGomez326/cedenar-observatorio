@@ -1,0 +1,746 @@
+{% extends 'monitoreo/base.html' %}
+
+{% block title %}Proyectos - Observatorio transición energética CEDENAR{% endblock %}
+
+{% block content %}
+<style>
+    /* ============================================
+       ESTILOS MEJORADOS PARA GESTIÓN DE PROYECTOS
+       ============================================ */
+    
+    /* Contenedor principal */
+    .proyectos-container {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .dark-theme .proyectos-container {
+        background: #1f2937;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        border: 1px solid #374151;
+    }
+    
+    /* Encabezado */
+    .header-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+    
+    .dark-theme .header-title {
+        color: #f3f4f6;
+    }
+    
+    .header-subtitle {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+    
+    .dark-theme .header-subtitle {
+        color: #9ca3af;
+    }
+    
+    /* Botón nuevo proyecto MEJORADO */
+    .btn-nuevo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-nuevo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+    }
+    
+    .dark-theme .btn-nuevo {
+        background: linear-gradient(135deg, #059669, #047857);
+    }
+    
+    /* Filtros MEJORADOS */
+    .filtros-container {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dark-theme .filtros-container {
+        background: #1f2937;
+        border-color: #374151;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+    
+    .filtro-btn {
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-weight: 500;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+    
+    .filtro-btn.activo {
+        background: #2563eb;
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+    }
+    
+    .filtro-btn:not(.activo) {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+    
+    .dark-theme .filtro-btn:not(.activo) {
+        background: #374151;
+        color: #9ca3af;
+    }
+    
+    .filtro-btn:not(.activo):hover {
+        background: #e5e7eb;
+        transform: translateY(-1px);
+    }
+    
+    .dark-theme .filtro-btn:not(.activo):hover {
+        background: #4b5563;
+        color: #e5e7eb;
+    }
+    
+    /* Tabla MEJORADA */
+    .tabla-wrapper {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dark-theme .tabla-wrapper {
+        background: #1f2937;
+        border-color: #374151;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+    
+    .tabla-proyectos {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .tabla-proyectos th {
+        background: #f9fafb;
+        padding: 16px 20px;
+        text-align: left;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .dark-theme .tabla-proyectos th {
+        background: #111827;
+        color: #9ca3af;
+        border-bottom-color: #374151;
+    }
+    
+    .tabla-proyectos td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 0.95rem;
+    }
+    
+    .dark-theme .tabla-proyectos td {
+        border-bottom-color: #374151;
+        color: #e5e7eb;
+    }
+    
+    .tabla-proyectos tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .tabla-proyectos tbody tr {
+        transition: background 0.2s;
+    }
+    
+    .tabla-proyectos tbody tr:hover {
+        background: #f9fafb;
+    }
+    
+    .dark-theme .tabla-proyectos tbody tr:hover {
+        background: #374151;
+    }
+    
+    /* Badges de estado MEJORADOS */
+    .badge-estado {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        width: fit-content;
+    }
+    
+    .badge-activo {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+    
+    .dark-theme .badge-activo {
+        background: #064e3b;
+        color: #d1fae5;
+        border-color: #059669;
+    }
+    
+    .badge-inactivo {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+    
+    .dark-theme .badge-inactivo {
+        background: #7f1d1d;
+        color: #fee2e2;
+        border-color: #dc2626;
+    }
+    
+    /* Badges de marca MEJORADOS */
+    .badge-marca {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        width: fit-content;
+    }
+    
+    .marca-huawei {
+        background: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+    
+    .dark-theme .marca-huawei {
+        background: #1e3a8a;
+        color: #bfdbfe;
+        border-color: #2563eb;
+    }
+    
+    .marca-growatt {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+    
+    .dark-theme .marca-growatt {
+        background: #064e3b;
+        color: #a7f3d0;
+        border-color: #059669;
+    }
+    
+    /* Código MEJORADO */
+    .codigo-medidor {
+        background: #f3f4f6;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: #1f2937;
+    }
+    
+    .dark-theme .codigo-medidor {
+        background: #374151;
+        color: #e5e7eb;
+    }
+    
+    /* Botones de acción MEJORADOS */
+    .acciones-container {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .btn-accion {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .dark-theme .btn-accion {
+        background: #374151;
+        color: #e5e7eb;
+        border-color: #4b5563;
+    }
+    
+    .btn-accion:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-ver { background: #dbeafe; color: #1e40af; }
+    .btn-editar { background: #fef3c7; color: #92400e; }
+    .btn-activar { background: #d1fae5; color: #065f46; }
+    .btn-desactivar { background: #fee2e2; color: #991b1b; }
+    .btn-eliminar { background: #fee2e2; color: #991b1b; }
+    
+    .dark-theme .btn-ver { background: #1e3a8a; color: #bfdbfe; }
+    .dark-theme .btn-editar { background: #92400e; color: #fef3c7; }
+    .dark-theme .btn-activar { background: #064e3b; color: #d1fae5; }
+    .dark-theme .btn-desactivar { background: #7f1d1d; color: #fee2e2; }
+    .dark-theme .btn-eliminar { background: #7f1d1d; color: #fee2e2; }
+    
+    /* Botón CSV MEJORADO */
+    .btn-csv {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s;
+        background: #10b981;
+        color: white;
+        border: none;
+    }
+    
+    .btn-csv:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+    
+    .dark-theme .btn-csv {
+        background: #059669;
+    }
+    
+    .dark-theme .btn-csv:hover {
+        background: #047857;
+    }
+    
+    /* Resumen inferior */
+    .resumen-stats {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+    
+    .dark-theme .resumen-stats {
+        border-top-color: #374151;
+        color: #9ca3af;
+    }
+    
+    .stats-numbers {
+        display: flex;
+        gap: 24px;
+    }
+    
+    .stats-numbers strong {
+        color: #111827;
+        font-weight: 600;
+    }
+    
+    .dark-theme .stats-numbers strong {
+        color: #f3f4f6;
+    }
+    
+    /* Tooltips */
+    [data-tooltip] {
+        position: relative;
+        cursor: help;
+    }
+    
+    [data-tooltip]:before {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 12px;
+        background: #1f2937;
+        color: white;
+        font-size: 0.8rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s;
+        z-index: 10;
+        pointer-events: none;
+    }
+    
+    [data-tooltip]:hover:before {
+        opacity: 1;
+        visibility: visible;
+        bottom: 130%;
+    }
+    
+    .dark-theme [data-tooltip]:before {
+        background: #f3f4f6;
+        color: #1f2937;
+    }
+    
+    /* Mensaje sin datos */
+    .sin-datos {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+    
+    .dark-theme .sin-datos {
+        color: #9ca3af;
+    }
+    
+    .sin-datos-icon {
+        font-size: 4rem;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+    
+    .sin-datos-text {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+</style>
+
+<!-- Encabezado -->
+<div class="mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="header-title">📋 Gestión de Proyectos</h1>
+            <p class="header-subtitle">Administra todos tus proyectos de energía solar</p>
+        </div>
+        
+        <!-- Botón Nuevo Proyecto MEJORADO -->
+        <a href="{% url 'crear_proyecto' %}" class="btn-nuevo">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Nuevo Proyecto
+        </a>
+    </div>
+</div>
+
+<!-- Filtros MEJORADOS -->
+<div class="filtros-container">
+    <div class="flex items-center gap-4 mb-3">
+        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Filtrar por:</span>
+        <div class="flex gap-2">
+            <button class="filtro-btn activo" data-filtro="todos">📊 Todos</button>
+            <button class="filtro-btn" data-filtro="activos">✅ Activos</button>
+            <button class="filtro-btn" data-filtro="inactivos">❌ Inactivos</button>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de proyectos MEJORADA -->
+<div class="tabla-wrapper">
+    <table class="tabla-proyectos">
+        <thead>
+            <tr>
+                <th>ESTADO</th>
+                <th>NOMBRE</th>
+                <th>CÓDIGO</th>
+                <th>MARCA</th>
+                <th>UBICACIÓN</th>
+                <th>ÚLTIMA LECTURA</th>
+                <th class="text-center">ACCIONES</th>
+                <th class="text-center">CSV</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-proyectos">
+            {% for proyecto in proyectos %}
+            <tr class="proyecto-row" data-activo="{{ proyecto.activo|yesno:'true,false' }}">
+                <!-- Estado MEJORADO -->
+                <td>
+                    <span class="badge-estado {% if proyecto.activo %}badge-activo{% else %}badge-inactivo{% endif %}">
+                        {% if proyecto.activo %}
+                            <span>✅</span> Activo
+                        {% else %}
+                            <span>❌</span> Inactivo
+                        {% endif %}
+                    </span>
+                </td>
+                
+                <!-- Nombre -->
+                <td>
+                    <div class="font-medium">{{ proyecto.nombre }}</div>
+                </td>
+                
+                <!-- Código MEJORADO -->
+                <td>
+                    <span class="codigo-medidor">{{ proyecto.codigo_medidor }}</span>
+                </td>
+                
+                <!-- Marca MEJORADA -->
+                <td>
+                    {% if proyecto.marca %}
+                        <span class="badge-marca 
+                            {% if proyecto.marca == 'HUAWEI' %}marca-huawei
+                            {% elif proyecto.marca == 'GROWATT' %}marca-growatt
+                            {% endif %}">
+                            {% if proyecto.marca == 'HUAWEI' %}{% elif proyecto.marca == 'GROWATT' %}{% endif %}
+                            {{ proyecto.marca }}
+                        </span>
+                    {% else %}
+                        <span class="text-gray-400">—</span>
+                    {% endif %}
+                </td>
+                
+                <!-- Ubicación -->
+                <td>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400">📍</span>
+                        <span>{{ proyecto.ubicacion|default:"—" }}</span>
+                    </div>
+                </td>
+                
+                <!-- Última lectura MEJORADA -->
+                <td>
+                    {% with ultima=proyecto.medicion_set.last %}
+                        {% if ultima %}
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-400">📅</span>
+                                <span>{{ ultima.fecha_lectura|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        {% else %}
+                            <span class="text-gray-400 italic">Sin datos</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                
+                <!-- Acciones MEJORADAS -->
+                <td>
+                    <div class="acciones-container">
+                        <a href="{% url 'detalle_proyecto' proyecto.id %}" 
+                           class="btn-accion btn-ver"
+                           data-tooltip="Ver detalles">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </a>
+                        
+                        <a href="{% url 'editar_proyecto' proyecto.id %}" 
+                           class="btn-accion btn-editar"
+                           data-tooltip="Editar proyecto">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                        
+                        <a href="{% url 'toggle_proyecto_activo' proyecto.id %}" 
+                           class="btn-accion {% if proyecto.activo %}btn-desactivar{% else %}btn-activar{% endif %}"
+                           data-tooltip="{% if proyecto.activo %}Desactivar{% else %}Activar{% endif %} proyecto">
+                            {% if proyecto.activo %}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            {% endif %}
+                        </a>
+                        
+                        <a href="{% url 'eliminar_proyecto' proyecto.id %}" 
+                           class="btn-accion btn-eliminar"
+                           data-tooltip="Eliminar proyecto">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </td>
+                
+                <!-- CSV MEJORADO -->
+                <td class="text-center">
+                    <a href="{% url 'subir_csv' proyecto.id %}" 
+                       class="btn-csv"
+                       data-tooltip="Subir archivo CSV con mediciones">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        CSV
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="sin-datos">
+                    <div class="sin-datos-icon">📭</div>
+                    <div class="sin-datos-text">No hay proyectos registrados</div>
+                    <a href="{% url 'crear_proyecto' %}" class="btn-nuevo">
+                        Crear primer proyecto
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Resumen inferior MEJORADO con IDs -->
+<div class="mt-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div class="flex flex-wrap justify-between items-center gap-4">
+        <div class="flex gap-6">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl"></span>
+                <div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Total</span>
+                    <div class="text-xl font-bold text-gray-900 dark:text-gray" id="total-proyectos">0</div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <span class="text-2xl"></span>
+                <div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Activos</span>
+                    <div class="text-xl font-bold text-green-600 dark:text-green-400" id="activos-proyectos">0</div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <span class="text-2xl"></span>
+                <div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Inactivos</span>
+                    <div class="text-xl font-bold text-red-600 dark:text-red-400" id="inactivos-proyectos">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span>🕒</span>
+            <span>Actualizado: {% now "d/m/Y H:i" %}</span>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+// ============================================
+// GESTIÓN DE PROYECTOS - FILTROS Y MEJORAS
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando gestión de proyectos...');
+    
+    // Filtros por estado
+    const filtroBtns = document.querySelectorAll('.filtro-btn');
+    const filas = document.querySelectorAll('.proyecto-row');
+    
+    function aplicarFiltro(filtro) {
+        console.log(`🔍 Aplicando filtro: ${filtro}`);
+        
+        filas.forEach(fila => {
+            const activo = fila.dataset.activo === 'true';
+            
+            if (filtro === 'todos') {
+                fila.style.display = '';
+            } else if (filtro === 'activos' && activo) {
+                fila.style.display = '';
+            } else if (filtro === 'inactivos' && !activo) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+        
+        // Actualizar clases de botones
+        filtroBtns.forEach(btn => {
+            if (btn.dataset.filtro === filtro) {
+                btn.classList.add('activo');
+            } else {
+                btn.classList.remove('activo');
+            }
+        });
+    }
+    
+    // Event listeners
+    filtroBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            aplicarFiltro(this.dataset.filtro);
+        });
+    });
+    
+    // Iniciar con "todos"
+    aplicarFiltro('todos');
+    
+    // ============================================
+    // CÁLCULO AUTOMÁTICO DE ESTADÍSTICAS
+    // ============================================
+    console.log('📊 Calculando estadísticas automáticamente...');
+    
+    // Contar proyectos directamente desde la tabla
+    let activos = 0;
+    let inactivos = 0;
+    
+    filas.forEach(fila => {
+        // Buscar el badge de estado dentro de la fila
+        const badge = fila.querySelector('.badge-estado');
+        if (badge) {
+            if (badge.classList.contains('badge-activo')) {
+                activos++;
+            } else if (badge.classList.contains('badge-inactivo')) {
+                inactivos++;
+            }
+        } else {
+            // Si no encuentra el badge, usar el dataset
+            if (fila.dataset.activo === 'true') {
+                activos++;
+            } else {
+                inactivos++;
+            }
+        }
+    });
+    
+    const total = filas.length;
+    
+    console.log(`📊 Total: ${total}, Activos: ${activos}, Inactivos: ${inactivos}`);
+    
+    // Actualizar los números en el resumen
+    document.getElementById('total-proyectos').textContent = total;
+    document.getElementById('activos-proyectos').textContent = activos;
+    document.getElementById('inactivos-proyectos').textContent = inactivos;
+    
+    // Tooltips (ya manejados por CSS)
+    console.log('✅ Gestión de proyectos lista');
+});
+</script>
+{% endblock %}

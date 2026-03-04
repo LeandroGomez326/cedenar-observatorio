@@ -1,0 +1,61 @@
+{% extends 'monitoreo/base.html' %}
+
+{% block content %}
+<div style="padding: 20px;">
+    <h1 style="font-size: 32px; font-weight: bold; margin-bottom: 20px;">Mapa de Proyectos OTE</h1>
+    
+    <div id="mapa" style="height: 600px; width: 100%; border: 1px solid #ccc; border-radius: 8px;"></div>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    
+<script>
+window.onload = function() {
+    var map = L.map('mapa').setView([1.227266, -77.281932], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    
+    // Datos con parseFloat para evitar errores de formato
+    var proyectos = [
+        {% for p in proyectos %}
+        {
+            id: {{ p.id }},
+            nombre: "{{ p.nombre|escapejs }}",
+            lat: parseFloat("{{ p.latitud|default:'0' }}".replace(',', '.')),
+            lng: parseFloat("{{ p.longitud|default:'0' }}".replace(',', '.'))
+        },
+        {% endfor %}
+    ];
+    
+    console.log("📊 Proyectos procesados:", proyectos.length);
+    
+    var marcadores = [];
+    
+    for (var i = 0; i < proyectos.length; i++) {
+        var p = proyectos[i];
+        
+        // Solo crear marcador si las coordenadas son válidas
+        if (!isNaN(p.lat) && !isNaN(p.lng) && p.lat !== 0 && p.lng !== 0) {
+            console.log(`✅ ${p.nombre}: ${p.lat}, ${p.lng}`);
+            
+            var marker = L.marker([p.lat, p.lng]).addTo(map);
+            marker.bindPopup(
+                '<b>' + p.nombre + '</b><br>' +
+                '<a href="/proyecto/' + p.id + '/">Ver detalles</a>'
+            );
+            
+            marcadores.push(marker);
+        } else {
+            console.log("❌ Coordenadas inválidas:", p.nombre, p.lat, p.lng);
+        }
+    }
+    
+    console.log(`📍 Total marcadores: ${marcadores.length}`);
+    
+    if (marcadores.length > 0) {
+        var group = L.featureGroup(marcadores);
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+};
+</script>
+</div>
+{% endblock %}

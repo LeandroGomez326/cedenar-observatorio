@@ -1,0 +1,892 @@
+{% extends 'monitoreo/base.html' %}
+
+{% block content %}
+<style>
+    .tab-btn {
+        padding: 10px 20px;
+        background: #f3f4f6;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s;
+        border-radius: 8px 8px 0 0;
+        margin-right: 4px;
+    }
+    .tab-btn.active {
+        background: #2563EB;
+        color: white;
+    }
+    .dark-theme .tab-btn {
+        background: #374151;
+        color: #e5e7eb;
+    }
+    .dark-theme .tab-btn.active {
+        background: #3b82f6;
+        color: white;
+    }
+    
+    .tab-content {
+        display: none;
+        padding: 20px;
+        background: white;
+        border-radius: 0 8px 8px 8px;
+        border: 1px solid #e5e7eb;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .dark-theme .tab-content {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .grafica-container {
+        height: 350px;
+        margin: 20px 0;
+        position: relative;
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 10px;
+    }
+    .dark-theme .grafica-container {
+        background: #111827;
+    }
+    
+    .periodo-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+    .periodo-btn.active {
+        background: #2563EB !important;
+        color: white !important;
+    }
+    
+    .export-btn {
+        background: #10b981;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    .export-btn:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .dark-theme .export-btn {
+        background: #10b981;
+    }
+    .dark-theme .export-btn:hover {
+        background: #059669;
+    }
+    
+    /* Selector de tipo de gráfica */
+    .tipo-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+        border: none;
+    }
+    .tipo-btn.active {
+        background: #2563EB;
+        color: white;
+    }
+    .tipo-btn:not(.active) {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    .dark-theme .tipo-btn:not(.active) {
+        background: #374151;
+        color: #e5e7eb;
+    }
+</style>
+
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h2 class="text-3xl font-bold mb-2 dark-theme:text-white">Variables Eléctricas</h2>
+        <p class="text-gray-600 dark-theme:text-gray-300">Análisis detallado de parámetros eléctricos</p>
+    </div>
+    
+    <!-- Botón de exportar todo -->
+    <button id="exportar-todo" class="export-btn">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        Exportar todo como imagen
+    </button>
+</div>
+
+<!-- Selector de período -->
+<div class="mb-6 flex flex-wrap gap-2 items-center">
+    <div class="flex gap-2" id="periodo-buttons">
+        <button class="periodo-btn active" data-dias="1">1 día</button>
+        <button class="periodo-btn" data-dias="7">7 días</button>
+        <button class="periodo-btn" data-dias="30">30 días</button>
+        <button class="periodo-btn" data-dias="90">90 días</button>
+        <button class="periodo-btn" data-dias="365">1 año</button>
+    </div>
+    
+    <!-- Selector de tipo de gráfica -->
+    <div class="ml-auto flex gap-2">
+        <button id="tipo-linea" class="tipo-btn active">📈 Línea</button>
+        <button id="tipo-barra" class="tipo-btn">📊 Barra</button>
+    </div>
+</div>
+
+<!-- Pestañas -->
+<div class="flex flex-wrap border-b border-gray-200 dark-theme:border-gray-700">
+    <button class="tab-btn active" data-tab="potencia">⚡ Potencia</button>
+    <button class="tab-btn" data-tab="corriente">🔌 Corriente</button>
+    <button class="tab-btn" data-tab="voltaje">⚡ Voltaje</button>
+    <button class="tab-btn" data-tab="factor">📊 Factor Potencia</button>
+</div>
+
+<!-- POTENCIA -->
+<div id="tab-potencia" class="tab-content active">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Potencia DC (W)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-potencia-dc">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-potencia-dc"></canvas>
+            </div>
+        </div>
+        <div>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Potencia Reactiva (VAr)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-potencia-reactiva">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-potencia-reactiva"></canvas>
+            </div>
+        </div>
+        <div class="md:col-span-2">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Potencia Aparente (VA)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-potencia-aparente">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-potencia-aparente"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CORRIENTE -->
+<div id="tab-corriente" class="tab-content">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Corriente AC Total (A)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-corriente-ac-total">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-corriente-ac-total"></canvas>
+            </div>
+        </div>
+        <div>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Corriente DC (A)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-corriente-dc">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-corriente-dc"></canvas>
+            </div>
+        </div>
+        <div class="md:col-span-2">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Corriente AC (A)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-corriente-ac">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-corriente-ac"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- VOLTAJE -->
+<div id="tab-voltaje" class="tab-content">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Voltaje AC (V)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-voltaje-ac">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-voltaje-ac"></canvas>
+            </div>
+        </div>
+        <div>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Voltaje DC (V)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-voltaje-dc">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-voltaje-dc"></canvas>
+            </div>
+        </div>
+        <div class="md:col-span-2">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold dark-theme:text-white">Voltaje entre fases (V)</h3>
+                <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-voltaje-fases">⬇️ Descargar Imagen</button>
+            </div>
+            <div class="grafica-container">
+                <canvas id="graf-voltaje-fases"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FACTOR -->
+<div id="tab-factor" class="tab-content">
+    <div>
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold dark-theme:text-white">Factor de Potencia (%)</h3>
+            <button class="export-grafica text-sm text-blue-600 hover:underline" data-canvas="graf-factor-potencia">⬇️ Exportar</button>
+        </div>
+        <div class="grafica-container">
+            <canvas id="graf-factor-potencia"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Incluir Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Incluir html2canvas para exportar imágenes -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Script personalizado con datos realistas -->
+<script>
+// ============================================
+// VARIABLES ELÉCTRICAS - VERSIÓN CON DATOS REALISTAS
+// ============================================
+
+// Configuración global
+window.tipoGraficaActual = 'line';
+window.periodoActual = 1;
+
+// ============================================
+// GENERAR VARIABLES ELÉCTRICAS REALISTAS (SIMULACIÓN)
+// ============================================
+function generarVariablesElectricasRealistas(dias = 1) {
+    console.log('⚡ Generando variables eléctricas realistas...');
+    
+    const puntos = dias === 1 ? 24 : dias * 24; // Datos horarios
+    const labels = [];
+    const now = new Date();
+    
+    // Generar etiquetas de tiempo
+    for (let i = 0; i < puntos; i++) {
+        const time = new Date(now - (puntos - i) * 3600000);
+        labels.push(time.toLocaleString('es-ES', { 
+            day: '2-digit', 
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        }));
+    }
+    
+    // Arrays para cada variable
+    const potenciaDC = [];
+    const potenciaReactiva = [];
+    const potenciaAparente = [];
+    const corrienteACTotal = [];
+    const corrienteDC = [];
+    const corrienteAC = [];
+    const voltajeAC = [];
+    const voltajeDC = [];
+    const voltajeFases = [];
+    const factorPotencia = [];
+    
+    // Generar datos para cada punto horario
+    for (let i = 0; i < puntos; i++) {
+        const hora = new Date(now - (puntos - i) * 3600000).getHours();
+        const diaSemana = new Date(now - (puntos - i) * 3600000).getDay();
+        const esFinDeSemana = diaSemana === 0 || diaSemana === 6;
+        
+        // ============================================
+        // POTENCIA DC (W) - Sigue la generación solar
+        // ============================================
+        let factorDC = 0;
+        if (hora >= 6 && hora <= 18) {
+            const horaNormalizada = (hora - 6) / 12;
+            factorDC = Math.sin(horaNormalizada * Math.PI);
+            
+            // Variabilidad por nubes (20% de probabilidad)
+            const nubes = Math.random() < 0.2 ? 0.5 + Math.random() * 0.3 : 0.9 + Math.random() * 0.2;
+            factorDC *= nubes;
+            
+            // Más generación en fines de semana
+            if (esFinDeSemana) factorDC *= 1.1;
+        }
+        
+        // Añadir pequeña generación base (siempre hay algo)
+        factorDC = Math.max(0.05, factorDC);
+        
+        const valorDC = factorDC * (4800 + Math.random() * 1200);
+        
+        // ============================================
+        // POTENCIA REACTIVA (VAr) - Relacionada con la carga
+        // ============================================
+        let factorReactiva = 0.15 + Math.random() * 0.3;
+        
+        // Más reactiva en horas pico
+        if ((hora >= 7 && hora <= 9) || (hora >= 19 && hora <= 23)) {
+            factorReactiva *= 1.3;
+        }
+        
+        const valorReactiva = valorDC * factorReactiva * (0.6 + Math.random() * 0.4);
+        
+        // ============================================
+        // POTENCIA APARENTE (VA)
+        // ============================================
+        const valorAparente = Math.sqrt(valorDC**2 + valorReactiva**2) * (0.95 + Math.random() * 0.1);
+        
+        // ============================================
+        // CORRIENTE AC TOTAL (A) - Sigue patrón de consumo
+        // ============================================
+        let factorCorriente = 0.5;
+        
+        if (hora >= 7 && hora <= 9) {
+            factorCorriente = 1.6 + Math.random() * 0.4; // Pico mañana
+        } else if (hora >= 12 && hora <= 14) {
+            factorCorriente = 1.1 + Math.random() * 0.3; // Mediodía
+        } else if (hora >= 19 && hora <= 23) {
+            factorCorriente = 2.0 + Math.random() * 0.5; // Pico noche
+        } else if (hora >= 0 && hora <= 5) {
+            factorCorriente = 0.4 + Math.random() * 0.2; // Madrugada
+        } else {
+            factorCorriente = 0.9 + Math.random() * 0.3;
+        }
+        
+        // Menos consumo en fines de semana
+        if (esFinDeSemana) factorCorriente *= 0.85;
+        
+        const valorCorrienteTotal = factorCorriente * (45 + Math.random() * 15);
+        
+        // ============================================
+        // CORRIENTE DC (A) - Relacionada con generación
+        // ============================================
+        const valorCorrienteDC = (valorDC / 48) * (0.9 + Math.random() * 0.2); // Aprox P=VI, V≈48V
+        
+        // ============================================
+        // CORRIENTE AC (A) - Similar a corriente total pero más variable
+        // ============================================
+        const valorCorrienteAC = factorCorriente * (38 + Math.random() * 12);
+        
+        // ============================================
+        // VOLTAJE AC (V) - Bastante estable con pequeñas variaciones
+        // ============================================
+        const valorVoltajeAC = 220 + (Math.sin(i / 12 * Math.PI) * 3) + (Math.random() * 4 - 2);
+        
+        // ============================================
+        // VOLTAJE DC (V) - Relativamente estable
+        // ============================================
+        const valorVoltajeDC = 48 + (Math.sin(i / 24 * Math.PI) * 1.5) + (Math.random() * 2 - 1);
+        
+        // ============================================
+        // VOLTAJE ENTRE FASES (V) - Ligeramente mayor que voltaje AC
+        // ============================================
+        const valorVoltajeFases = valorVoltajeAC * 1.73 + (Math.random() * 3 - 1.5);
+        
+        // ============================================
+        // FACTOR DE POTENCIA (%) - Varía según la carga
+        // ============================================
+        let factorFP = 0.88;
+        
+        if ((hora >= 7 && hora <= 9) || (hora >= 19 && hora <= 23)) {
+            factorFP = 0.92 + Math.random() * 0.05; // Mejor factor en horas pico
+        } else if (hora >= 0 && hora <= 5) {
+            factorFP = 0.82 + Math.random() * 0.06; // Peor factor en madrugada
+        } else {
+            factorFP = 0.87 + Math.random() * 0.08;
+        }
+        
+        const valorFactor = factorFP * 100;
+        
+        // Agregar a los arrays
+        potenciaDC.push(Math.round(valorDC));
+        potenciaReactiva.push(Math.round(valorReactiva));
+        potenciaAparente.push(Math.round(valorAparente));
+        corrienteACTotal.push(Number(valorCorrienteTotal.toFixed(1)));
+        corrienteDC.push(Number(valorCorrienteDC.toFixed(1)));
+        corrienteAC.push(Number(valorCorrienteAC.toFixed(1)));
+        voltajeAC.push(Number(valorVoltajeAC.toFixed(1)));
+        voltajeDC.push(Number(valorVoltajeDC.toFixed(1)));
+        voltajeFases.push(Number(valorVoltajeFases.toFixed(1)));
+        factorPotencia.push(Number(valorFactor.toFixed(1)));
+    }
+    
+    // Crear datasets para cada canvas
+    const datos = {
+        'graf-potencia-dc': {
+            labels: labels,
+            datasets: [{
+                label: 'Potencia DC (W)',
+                data: potenciaDC,
+                borderColor: '#3b82f6',
+                backgroundColor: '#3b82f620'
+            }]
+        },
+        'graf-potencia-reactiva': {
+            labels: labels,
+            datasets: [{
+                label: 'Potencia Reactiva (VAr)',
+                data: potenciaReactiva,
+                borderColor: '#ef4444',
+                backgroundColor: '#ef444420'
+            }]
+        },
+        'graf-potencia-aparente': {
+            labels: labels,
+            datasets: [{
+                label: 'Potencia Aparente (VA)',
+                data: potenciaAparente,
+                borderColor: '#8b5cf6',
+                backgroundColor: '#8b5cf620'
+            }]
+        },
+        'graf-corriente-ac-total': {
+            labels: labels,
+            datasets: [{
+                label: 'Corriente AC Total (A)',
+                data: corrienteACTotal,
+                borderColor: '#10b981',
+                backgroundColor: '#10b98120'
+            }]
+        },
+        'graf-corriente-dc': {
+            labels: labels,
+            datasets: [{
+                label: 'Corriente DC (A)',
+                data: corrienteDC,
+                borderColor: '#f59e0b',
+                backgroundColor: '#f59e0b20'
+            }]
+        },
+        'graf-corriente-ac': {
+            labels: labels,
+            datasets: [{
+                label: 'Corriente AC (A)',
+                data: corrienteAC,
+                borderColor: '#14b8a6',
+                backgroundColor: '#14b8a620'
+            }]
+        },
+        'graf-voltaje-ac': {
+            labels: labels,
+            datasets: [{
+                label: 'Voltaje AC (V)',
+                data: voltajeAC,
+                borderColor: '#f97316',
+                backgroundColor: '#f9731620'
+            }]
+        },
+        'graf-voltaje-dc': {
+            labels: labels,
+            datasets: [{
+                label: 'Voltaje DC (V)',
+                data: voltajeDC,
+                borderColor: '#6b7280',
+                backgroundColor: '#6b728020'
+            }]
+        },
+        'graf-voltaje-fases': {
+            labels: labels,
+            datasets: [{
+                label: 'Voltaje entre fases (V)',
+                data: voltajeFases,
+                borderColor: '#ec4899',
+                backgroundColor: '#ec489920'
+            }]
+        },
+        'graf-factor-potencia': {
+            labels: labels,
+            datasets: [{
+                label: 'Factor de Potencia (%)',
+                data: factorPotencia,
+                borderColor: '#a855f7',
+                backgroundColor: '#a855f720'
+            }]
+        }
+    };
+    
+    return datos;
+}
+
+// ============================================
+// FUNCIÓN PARA CARGAR DATOS (USA SIMULACIÓN SIEMPRE)
+// ============================================
+async function cargarDatosDesdeServidor(dias = 1) {
+    try {
+        // Mostrar indicador de carga
+        document.querySelectorAll('.grafica-container').forEach(container => {
+            container.style.opacity = '0.5';
+        });
+        
+        // Pequeña pausa para simular carga
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Generar datos realistas
+        console.log(`🎮 Generando datos de simulación para ${dias} días...`);
+        const datosSimulados = generarVariablesElectricasRealistas(dias);
+        
+        // Asignar a las variables globales
+        window.datosPotenciaDC = datosSimulados['graf-potencia-dc'];
+        window.datosPotenciaReactiva = datosSimulados['graf-potencia-reactiva'];
+        window.datosPotenciaAparente = datosSimulados['graf-potencia-aparente'];
+        window.datosCorrienteACTotal = datosSimulados['graf-corriente-ac-total'];
+        window.datosCorrienteDC = datosSimulados['graf-corriente-dc'];
+        window.datosCorrienteAC = datosSimulados['graf-corriente-ac'];
+        window.datosVoltajeAC = datosSimulados['graf-voltaje-ac'];
+        window.datosVoltajeDC = datosSimulados['graf-voltaje-dc'];
+        window.datosVoltajeFases = datosSimulados['graf-voltaje-fases'];
+        window.datosFactorPotencia = datosSimulados['graf-factor-potencia'];
+        
+        // Restaurar opacidad
+        document.querySelectorAll('.grafica-container').forEach(container => {
+            container.style.opacity = '1';
+        });
+        
+        console.log(`✅ Datos de simulación generados para período de ${dias} día(s)`);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error al generar datos:', error);
+        return false;
+    }
+}
+
+// ============================================
+// FUNCIÓN PRINCIPAL PARA CREAR GRÁFICAS
+// ============================================
+function crearGrafica(canvasId, tipo, datos) {
+    // Destruir gráfico anterior
+    const chartKey = `grafico_${canvasId}`;
+    if (window[chartKey] instanceof Chart) {
+        window[chartKey].destroy();
+    }
+
+    // Verificar canvas
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`Error: No se encontró el canvas '${canvasId}'`);
+        return null;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error(`Error: No se pudo obtener contexto 2D de '${canvasId}'`);
+        return null;
+    }
+
+    // Preparar datasets
+    const datasets = [];
+    if (datos && datos.datasets) {
+        datos.datasets.forEach(ds => {
+            datasets.push({
+                label: ds.label,
+                data: ds.data,
+                borderColor: ds.borderColor,
+                backgroundColor: tipo === 'bar' ? ds.borderColor + '80' : 'transparent',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: tipo === 'bar' ? false : true,
+                pointRadius: tipo === 'line' ? 2 : 0,
+                pointHoverRadius: tipo === 'line' ? 5 : 0
+            });
+        });
+    } else {
+        console.error(`Error: datos no válidos para ${canvasId}`);
+        return null;
+    }
+
+    const todasLasEtiquetas = datos.labels || [];
+    const paso = Math.max(1, Math.floor(todasLasEtiquetas.length / 10));
+
+    // Colores según tema
+    const textColor = document.body.classList.contains('dark-theme') ? '#e5e7eb' : '#1f2937';
+    const gridColor = document.body.classList.contains('dark-theme') ? '#374151' : 'rgba(0,0,0,0.1)';
+
+    // Configuración del gráfico
+    const config = {
+        type: tipo,
+        data: {
+            labels: todasLasEtiquetas,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    display: true, 
+                    position: 'top',
+                    labels: {
+                        color: textColor,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: { 
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: document.body.classList.contains('dark-theme') ? '#1f2937' : 'white',
+                    titleColor: document.body.classList.contains('dark-theme') ? '#f3f4f6' : '#111827',
+                    bodyColor: document.body.classList.contains('dark-theme') ? '#e5e7eb' : '#4b5563',
+                    borderColor: document.body.classList.contains('dark-theme') ? '#374151' : '#e5e7eb',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { 
+                        display: true, 
+                        text: obtenerUnidad(canvasId),
+                        color: textColor
+                    },
+                    grid: { color: gridColor },
+                    ticks: { color: textColor }
+                },
+                x: {
+                    type: 'category',
+                    title: { 
+                        display: true, 
+                        text: 'Tiempo',
+                        color: textColor
+                    },
+                    grid: { display: false },
+                    ticks: {
+                        callback: function(val, index) {
+                            return index % paso === 0 ? todasLasEtiquetas[index] : '';
+                        },
+                        maxRotation: 45,
+                        minRotation: 30,
+                        font: { size: 9 },
+                        color: textColor,
+                        maxTicksLimit: 15
+                    }
+                }
+            }
+        }
+    };
+
+    // Crear gráfico
+    try {
+        window[chartKey] = new Chart(ctx, config);
+        console.log(`✅ Gráfico ${canvasId} creado`);
+        return window[chartKey];
+    } catch (error) {
+        console.error(`❌ Error al crear ${canvasId}:`, error);
+        return null;
+    }
+}
+
+function obtenerUnidad(canvasId) {
+    if (canvasId.includes('potencia-dc')) return 'Potencia (W)';
+    if (canvasId.includes('potencia-reactiva')) return 'Potencia (VAr)';
+    if (canvasId.includes('potencia-aparente')) return 'Potencia (VA)';
+    if (canvasId.includes('corriente')) return 'Corriente (A)';
+    if (canvasId.includes('voltaje-ac')) return 'Voltaje (V)';
+    if (canvasId.includes('voltaje-dc')) return 'Voltaje (V)';
+    if (canvasId.includes('voltaje-fases')) return 'Voltaje (V)';
+    if (canvasId.includes('factor')) return 'Factor (%)';
+    return 'Valor';
+}
+
+// ============================================
+// FUNCIÓN PARA CREAR TODAS LAS GRÁFICAS
+// ============================================
+async function createTodasLasGraficas() {
+    const tipo = window.tipoGraficaActual;
+    const dias = window.periodoActual;
+    
+    // Cargar datos
+    await cargarDatosDesdeServidor(dias);
+    
+    // Lista de todos los canvases
+    const canvases = [
+        'graf-potencia-dc',
+        'graf-potencia-reactiva',
+        'graf-potencia-aparente',
+        'graf-corriente-ac-total',
+        'graf-corriente-dc',
+        'graf-corriente-ac',
+        'graf-voltaje-ac',
+        'graf-voltaje-dc',
+        'graf-voltaje-fases',
+        'graf-factor-potencia'
+    ];
+    
+    canvases.forEach(canvasId => {
+        let datos = null;
+        
+        if (canvasId === 'graf-potencia-dc') datos = window.datosPotenciaDC;
+        else if (canvasId === 'graf-potencia-reactiva') datos = window.datosPotenciaReactiva;
+        else if (canvasId === 'graf-potencia-aparente') datos = window.datosPotenciaAparente;
+        else if (canvasId === 'graf-corriente-ac-total') datos = window.datosCorrienteACTotal;
+        else if (canvasId === 'graf-corriente-dc') datos = window.datosCorrienteDC;
+        else if (canvasId === 'graf-corriente-ac') datos = window.datosCorrienteAC;
+        else if (canvasId === 'graf-voltaje-ac') datos = window.datosVoltajeAC;
+        else if (canvasId === 'graf-voltaje-dc') datos = window.datosVoltajeDC;
+        else if (canvasId === 'graf-voltaje-fases') datos = window.datosVoltajeFases;
+        else if (canvasId === 'graf-factor-potencia') datos = window.datosFactorPotencia;
+        
+        if (datos) {
+            crearGrafica(canvasId, tipo, datos);
+        }
+    });
+}
+
+// ============================================
+// FUNCIONES DE EXPORTACIÓN
+// ============================================
+async function exportarGraficaComoImagen(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    try {
+        // Usar html2canvas para capturar el contenedor completo
+        const container = canvas.closest('.grafica-container');
+        if (!container) return;
+        
+        const canvasImg = await html2canvas(container, {
+            scale: 2,
+            backgroundColor: document.body.classList.contains('dark-theme') ? '#1f2937' : '#ffffff'
+        });
+        
+        const link = document.createElement('a');
+        link.download = `${canvasId}_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvasImg.toDataURL('image/png');
+        link.click();
+    } catch (error) {
+        console.error('Error al exportar:', error);
+        alert('Error al exportar la imagen');
+    }
+}
+
+async function exportarTodoComoImagen() {
+    try {
+        const tabs = document.querySelectorAll('.tab-content');
+        const activeTab = document.querySelector('.tab-content.active');
+        
+        // Guardar el tab activo
+        const activeTabId = activeTab ? activeTab.id : 'tab-potencia';
+        
+        const link = document.createElement('a');
+        link.download = `variables_electricas_${new Date().toISOString().slice(0,10)}.png`;
+        
+        // Capturar toda la sección
+        const mainContent = document.querySelector('.mb-8').closest('div').parentElement;
+        if (mainContent) {
+            const canvasImg = await html2canvas(mainContent, {
+                scale: 2,
+                backgroundColor: document.body.classList.contains('dark-theme') ? '#1f2937' : '#ffffff'
+            });
+            link.href = canvasImg.toDataURL('image/png');
+            link.click();
+        }
+    } catch (error) {
+        console.error('Error al exportar todo:', error);
+        alert('Error al exportar la imagen completa');
+    }
+}
+
+// ============================================
+// INICIALIZACIÓN Y EVENTOS
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando variables eléctricas...');
+    
+    // Crear gráficas iniciales
+    createTodasLasGraficas();
+    
+    // ===== EVENTOS DE PESTAÑAS =====
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            // Actualizar clases de pestañas
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Mostrar contenido de la pestaña
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        });
+    });
+    
+    // ===== EVENTOS DE TIPO DE GRÁFICA =====
+    document.getElementById('tipo-linea').addEventListener('click', function() {
+        window.tipoGraficaActual = 'line';
+        this.classList.add('active');
+        document.getElementById('tipo-barra').classList.remove('active');
+        createTodasLasGraficas();
+    });
+    
+    document.getElementById('tipo-barra').addEventListener('click', function() {
+        window.tipoGraficaActual = 'bar';
+        this.classList.add('active');
+        document.getElementById('tipo-linea').classList.remove('active');
+        createTodasLasGraficas();
+    });
+    
+    // ===== EVENTOS DE PERÍODO =====
+    document.querySelectorAll('.periodo-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const dias = parseInt(this.getAttribute('data-dias'));
+            
+            // Actualizar clases
+            document.querySelectorAll('.periodo-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Cambiar período y recargar
+            window.periodoActual = dias;
+            await createTodasLasGraficas();
+        });
+    });
+    
+    // ===== EVENTOS DE EXPORTACIÓN =====
+    document.querySelectorAll('.export-grafica').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const canvasId = this.getAttribute('data-canvas');
+            exportarGraficaComoImagen(canvasId);
+        });
+    });
+    
+    document.getElementById('exportar-todo').addEventListener('click', function() {
+        exportarTodoComoImagen();
+    });
+    
+    // ===== DETECTAR CAMBIOS DE TEMA =====
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'class') {
+                // Recargar gráficas cuando cambie el tema
+                createTodasLasGraficas();
+            }
+        });
+    });
+    
+    observer.observe(document.body, { attributes: true });
+});
+</script>
+{% endblock %}
