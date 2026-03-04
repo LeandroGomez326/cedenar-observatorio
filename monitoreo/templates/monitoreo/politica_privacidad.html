@@ -1,0 +1,83 @@
+{% extends 'monitoreo/base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div class="px-8 py-6 bg-gradient-to-r from-blue-600 to-blue-800">
+            <h1 class="text-3xl font-bold text-white">Política de Privacidad</h1>
+            <p class="text-blue-100 mt-2">Versión {{ version }} | Actualizada: {{ fecha_actualizacion }}</p>
+        </div>
+        
+        <div class="p-8">
+            <div class="prose dark:prose-invert max-w-none">
+                <h2 class="text-xl font-semibold mb-4">1. Datos que recopilamos</h2>
+                <p class="mb-4">En el Observatorio de Transición Energética CEDENAR, recopilamos:</p>
+                <ul class="list-disc pl-6 mb-6">
+                    <li>Información de identificación (nombre, email)</li>
+                    <li>Datos de medición energética de los proyectos</li>
+                    <li>Información de acceso (IP, fecha, hora)</li>
+                    <li>Preferencias de usuario (tema, configuración)</li>
+                </ul>
+                
+                <h2 class="text-xl font-semibold mb-4">2. Finalidad del tratamiento</h2>
+                <p class="mb-4">Los datos se utilizan para:</p>
+                <ul class="list-disc pl-6 mb-6">
+                    <li>Monitoreo y análisis energético</li>
+                    <li>Generación de reportes y predicciones</li>
+                    <li>Mejora del servicio</li>
+                    <li>Cumplimiento normativo (Ley 1581 de 2012)</li>
+                </ul>
+                
+                <h2 class="text-xl font-semibold mb-4">3. Base de legitimación</h2>
+                <p class="mb-6">El tratamiento se basa en tu consentimiento explícito y en la ejecución de servicios contratados.</p>
+                
+                <h2 class="text-xl font-semibold mb-4">4. Derechos del titular</h2>
+                <p class="mb-4">Puedes ejercer tus derechos de:</p>
+                <ul class="list-disc pl-6 mb-6">
+                    <li>Acceso a tus datos</li>
+                    <li>Rectificación de información incorrecta</li>
+                    <li>Cancelación (eliminación de tus datos)</li>
+                    <li>Oposición al tratamiento</li>
+                </ul>
+                <p class="mb-6">Para ejercer tus derechos, contacta a: <a href="mailto:privacidad@cedenar.gov.co" class="text-blue-600 hover:underline">privacidad@cedenar.gov.co</a></p>
+                
+                <h2 class="text-xl font-semibold mb-4">5. Seguridad de la información</h2>
+                <p class="mb-6">Implementamos medidas técnicas y organizativas para proteger tus datos, incluyendo encriptación SSL, firewalls y controles de acceso.</p>
+                
+                <h2 class="text-xl font-semibold mb-4">6. Transferencia de datos</h2>
+                <p class="mb-6">No compartimos tus datos personales con terceros sin tu consentimiento, excepto obligación legal.</p>
+                
+                <h2 class="text-xl font-semibold mb-4">7. Vigencia</h2>
+                <p class="mb-6">Tus datos se conservarán mientras mantengas una cuenta activa y por el tiempo necesario para cumplir obligaciones legales.</p>
+            </div>
+            
+            {% if not ya_acepto %}
+            <form method="POST" action="{% url 'aceptar_privacidad' %}" class="mt-8 border-t pt-6">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                <div class="flex items-start gap-4">
+                    <input type="checkbox" name="acepto" id="acepto" required class="mt-1">
+                    <label for="acepto" class="text-sm">
+                        He leído y acepto la política de privacidad y el tratamiento de mis datos personales de acuerdo con la Ley 1581 de 2012.
+                    </label>
+                </div>
+                <button type="submit" class="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Aceptar y continuar
+                </button>
+            </form>
+            {% else %}
+            <div class="mt-8 border-t pt-6">
+                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <p class="text-green-700 dark:text-green-300 flex items-center gap-2">
+                        <span>✅</span> Ya has aceptado la política de privacidad versión {{ version }}.
+                    </p>
+                </div>
+                <a href="{% url 'dashboard' %}" class="mt-4 inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Ir al dashboard
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
