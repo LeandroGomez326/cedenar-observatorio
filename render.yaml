@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: cedenar-observatorioTE
+    name: cedenar-observatorio
     runtime: python
     plan: free
     buildCommand: |
@@ -17,9 +17,9 @@ services:
         value: True
       - key: DATABASE_URL
         fromDatabase:
-          name: cedenar-ote
+          name: cedenar-db
           property: connectionString
 
 databases:
-  - name: cedenar-ote
+  - name: cedenar-db
     plan: free
