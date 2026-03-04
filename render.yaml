@@ -24,3 +24,15 @@ services:
 databases:
   - name: cedenar-db
     plan: free
+
+  - type: cron
+    name: cedenar-backup
+    runtime: python
+    schedule: "0 2 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py backup --action crear --dias 30
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cedenar-db
+          property: connectionString
