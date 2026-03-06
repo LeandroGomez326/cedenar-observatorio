@@ -11,7 +11,6 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 import json
 from django.views.decorators.csrf import csrf_exempt
-
 from .models import Proyecto, Medicion, EstadoServidor, ConfiguracionAlerta, PreferenciaDashboard  # ← IMPORTADO
 from .forms import ProyectoForm
 from monitoreo.services.inversores.huawei import HuaweiInversor
@@ -28,6 +27,45 @@ from .services.predictor import PredictorEnergia
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
+from .decorators import rate_limit, rate_limit_api
+from .models import ConsentimientoDatos
+from django.views.decorators.csrf import csrf_protect
+
+@login_required
+def politica_privacidad(request):
+    """Vista de política de privacidad"""
+    
+    # Verificar si ya aceptó la versión actual
+    ya_acepto = ConsentimientoDatos.objects.filter(
+        usuario=request.user,
+        version_politica='1.0'
+    ).exists()
+    
+    context = {
+        'ya_acepto': ya_acepto,
+        'version': '1.0',
+        'fecha_actualizacion': '2024-03-04',
+    }
+    return render(request, 'monitoreo/politica_privacidad.html', context)
+
+@login_required
+@csrf_protect
+def aceptar_privacidad(request):
+    """Vista para aceptar la política de privacidad"""
+    if request.method == 'POST':
+        ConsentimientoDatos.objects.create(
+            usuario=request.user,
+            ip_origen=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            version_politica='1.0'
+        )
+        messages.success(request, '✅ Gracias por aceptar nuestra política de privacidad.')
+        
+        # Redirigir a la página que intentaba acceder
+        next_url = request.POST.get('next', 'dashboard')
+        return redirect(next_url)
+    
+    return redirect('politica_privacidad')
 
 @login_required
 def entrenar_modelo(request, proyecto_id):
@@ -148,8 +186,7 @@ def dashboard_personalizable(request):
 # ============================================
 # VISTA DE REGISTRO DE USUARIOS
 # ============================================
-
-@rate_limit(rate='5/m')  # ← APLICADO
+@rate_limit(key='ip', rate='5/m') 
 def registro(request):
     """
     Vista para registro de nuevos usuarios
@@ -265,7 +302,7 @@ def detalle_proyecto(request, proyecto_id):
 # APIs PARA GRÁFICAS
 # ============================================
 
-@login_required
+@rate_limit_api(key='user', rate='100/h')  
 def api_lecturas(request, proyecto_id):
     """API para obtener datos de lecturas - acepta ID o código_medidor"""
     
@@ -332,7 +369,7 @@ def api_lecturas(request, proyecto_id):
         'balance': round(sum(generacion) - sum(consumo), 2)
     })
 
-@login_required
+@rate_limit_api(key='user', rate='50/h')  # ← AGREGAR ESTO
 def api_resumen(request):
     """API con resumen de todos los proyectos"""
     proyectos = Proyecto.objects.all()
@@ -519,7 +556,7 @@ def lista_proyectos(request):
         'proyectos_activos': proyectos_activos,
         'proyectos_inactivos': proyectos_inactivos,
     })
-@login_required
+@rate_limit(key='user', rate='10/m')  
 def crear_proyecto(request):
     """Crea un nuevo proyecto"""
     if request.method == 'POST':
@@ -814,7 +851,7 @@ def mapa_nuevo(request):
     proyectos = Proyecto.objects.all()
     return render(request, 'monitoreo/mapa_nuevo.html', {'proyectos': proyectos})
 
-
+@rate_limit(key='user', rate='20/m')  # ← AGREGAR ESTO
 def subir_csv(request, proyecto_id):
     proyecto = get_object_or_404(Proyecto, id=proyecto_id)
     
@@ -878,6 +915,7 @@ def api_variables_electricas(request, proyecto_id):
         data['voltaje_entre_fases'].append(m.voltaje_entre_fases_v or 0)
         data['factor_potencia'].append(m.factor_potencia_pct or 0)    
     return JsonResponse(data)
+
 
 @login_required
 def api_lecturas_por_periodo(request):

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #2563eb; color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+        .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+        .footer { background: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #6b7280; border-radius: 0 0 10px 10px; }
+        .metric { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Backup Completado</h1>
+        </div>
+        
+        <div class="content">
+            <p>El backup automático se ha completado exitosamente.</p>
+            
+            <div class="metric">
+                <h3>Detalles del backup:</h3>
+                <ul>
+                    <li><strong>Archivo:</strong> {{ archivo }}</li>
+                    <li><strong>Tamaño:</strong> {{ tamano }} MB</li>
+                    <li><strong>Fecha:</strong> {{ fecha|date:"d/m/Y H:i" }}</li>
+                </ul>
+            </div>
+            
+            <p>Los backups antiguos (más de 30 días) se eliminan automáticamente.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Observatorio de Transición Energética CEDENAR</p>
+        </div>
+    </div>
+</body>
+</html>

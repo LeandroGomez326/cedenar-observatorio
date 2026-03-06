@@ -1,7 +1,7 @@
 # monitoreo/middleware.py
 from django.shortcuts import redirect
 from django.urls import reverse
-from monitoreo.models import ConsentimientoDatos  # ← Esta línea
+from .models import ConsentimientoDatos
 
 class ConsentimientoMiddleware:
     def __init__(self, get_response):
@@ -18,7 +18,6 @@ class ConsentimientoMiddleware:
             ]
             
             if not any(path.startswith(ex) for ex in excluded_paths):
-                # Verificar si ya aceptó
                 if not ConsentimientoDatos.objects.filter(
                     usuario=request.user,
                     version_politica='1.0'
