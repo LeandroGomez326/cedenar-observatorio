@@ -161,10 +161,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'monitoreo.middleware.ConsentimientoMiddleware'
+    'monitoreo.consentimiento_middleware.ConsentimientoMiddleware'
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'monitoreo.consentimiento_middleware.ConsentimientoMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
