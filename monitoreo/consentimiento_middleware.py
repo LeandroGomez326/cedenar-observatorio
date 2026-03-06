@@ -1,9 +1,9 @@
-# monitoreo/middleware.py
+# monitoreo/consentimiento_middleware.py
 from django.shortcuts import redirect
 from django.urls import reverse
 from .models import ConsentimientoDatos
 
-class ConsentimientoMiddleware:
+class ConsentimientoMiddleware:  # ← El nombre de la clase puede seguir siendo este
     def __init__(self, get_response):
         self.get_response = get_response
     
