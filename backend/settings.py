@@ -11,15 +11,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
 
-
 # ============================================
-# CONFIGURACIÓN DE LOGGING
+# CONFIGURACIÓN DE LOGGING - VERSIÓN PARA PRODUCCIÓN
 # ============================================
 
-# Crear carpeta logs si no existe
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR, exist_ok=True)
+try:
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR, exist_ok=True)
+    LOGS_CREADOS = True
+except:
+    LOGS_CREADOS = False
+    print("⚠️ No se pudo crear carpeta logs, usando solo consola")
 
 LOGGING = {
     'version': 1,
@@ -40,27 +43,34 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'security_file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'seguridad.log'),
-            'formatter': 'verbose',
-        },
     },
     'loggers': {
-        'django.security': {
-            'handlers': ['console', 'security_file'],
+        'django': {
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
-        'django.request': {
-            'handlers': ['console', 'security_file'],
-            'level': 'ERROR',
-            'propagate': False,
+        'monitoreo': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
         },
     },
 }
 
+# Solo agregar archivo si se pudo crear la carpeta
+if LOGS_CREADOS:
+    LOGGING['handlers']['security_file'] = {
+        'level': 'INFO',
+        'class': 'logging.FileHandler',
+        'filename': os.path.join(LOG_DIR, 'seguridad.log'),
+        'formatter': 'verbose',
+    }
+    LOGGING['loggers']['django.security'] = {
+        'handlers': ['console', 'security_file'],
+        'level': 'INFO',
+        'propagate': True,
+    }
 # ============================================
 # SEGURIDAD - Decreto 338 de 2022
 # ============================================
