@@ -176,4 +176,27 @@ class PreferenciaDashboard(models.Model):
     def __str__(self):
         return f"Preferencias de {self.usuario.username}"
     
+# Agregar al final del archivo
+
+class ConsentimientoDatos(models.Model):
+    """Modelo para tracking de consentimiento de datos personales"""
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        related_name='consentimientos'
+    )
+    fecha_aceptacion = models.DateTimeField(auto_now_add=True)
+    ip_origen = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    version_politica = models.CharField(max_length=10, default='1.0')
     
+    class Meta:
+        verbose_name = 'Consentimiento de datos'
+        verbose_name_plural = 'Consentimientos'
+        ordering = ['-fecha_aceptacion']
+        indexes = [
+            models.Index(fields=['usuario', 'version_politica']),
+        ]
+    
+    def __str__(self):
+        return f"{self.usuario.username} - {self.fecha_aceptacion.strftime('%Y-%m-%d')}"
