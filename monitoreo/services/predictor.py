@@ -1,38 +1,50 @@
-# backend/monitoreo/services/predictor.py
-import numpy as np
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
+import os
 import joblib
 from datetime import datetime, timedelta
-from ..models import Medicion, Proyecto
-import os
 from django.conf import settings
+
+# Importaciones condicionales (solo si la IA está habilitada)
+if settings.IA_HABILITADA:
+    import numpy as np
+    import pandas as pd
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.model_selection import train_test_split
+else:
+    # Versiones dummy para evitar errores de importación
+    np = None
+    pd = None
+    RandomForestRegressor = None
+    StandardScaler = None
+    train_test_split = None
+
+from ..models import Medicion, Proyecto
 
 class PredictorEnergia:
     def __init__(self, proyecto_id=None):
         self.proyecto_id = proyecto_id
         self.modelo_gen = None
         self.modelo_cons = None
-        self.scaler = StandardScaler()
+        self.scaler = StandardScaler() if settings.IA_HABILITADA else None
         self.modelos_path = os.path.join(settings.BASE_DIR, 'modelos_ia')
         
-        # Crear carpeta si no existe
         if not os.path.exists(self.modelos_path):
             os.makedirs(self.modelos_path)
     
     def _crear_caracteristicas(self, df):
         """Crea características a partir de fechas"""
+        if not settings.IA_HABILITADA:
+            return None
+            
         df = df.copy()
         df['hora'] = df['fecha'].dt.hour
         df['dia'] = df['fecha'].dt.day
         df['mes'] = df['fecha'].dt.month
         df['dia_semana'] = df['fecha'].dt.dayofweek
         df['es_fin_semana'] = (df['dia_semana'] >= 5).astype(int)
-        df['estacion'] = df['mes'] % 12 // 3 + 1  # 1: invierno, 2: primavera, etc.
+        df['estacion'] = df['mes'] % 12 // 3 + 1
         
-        # Características cíclicas (para que el modelo entienda ciclos)
+        # Características cíclicas
         df['hora_sin'] = np.sin(2 * np.pi * df['hora'] / 24)
         df['hora_cos'] = np.cos(2 * np.pi * df['hora'] / 24)
         df['mes_sin'] = np.sin(2 * np.pi * df['mes'] / 12)
@@ -42,6 +54,10 @@ class PredictorEnergia:
     
     def entrenar(self, dias_historial=365):
         """Entrena modelos con datos históricos"""
+        if not settings.IA_HABILITADA:
+            print("⚠️ IA deshabilitada. No se puede entrenar.")
+            return False
+            
         print(f"🤖 Entrenando modelos con {dias_historial} días de historial...")
         
         # Obtener datos históricos
@@ -143,9 +159,12 @@ class PredictorEnergia:
     
     def predecir_proximos_dias(self, dias=7):
         """Predice generación y consumo para los próximos días"""
+        if not settings.IA_HABILITADA:
+            return {'error': 'IA deshabilitada en configuración'}
+        
         if not self._cargar_modelos():
             return {'error': 'Modelos no entrenados'}
-        
+
         predicciones = []
         hoy = datetime.now()
         

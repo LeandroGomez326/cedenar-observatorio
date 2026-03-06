@@ -285,5 +285,10 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER', 'leandrogomez326@gmail.com')  # tu-email@gmail.com
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'Leitogomez326*')  # contraseña de aplicación
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'feiv sxnh hvpy ijuu')  # contraseña de aplicación
 DEFAULT_FROM_EMAIL = 'Observatorio CEDENAR <noreply@cedenar.gov.co>'
+
+# ============================================
+# SWITCH DE IA - Control de librerías pesadas
+# ============================================
+IA_HABILITADA = os.environ.get('IA_HABILITADA', 'False') == 'True'

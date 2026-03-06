@@ -30,6 +30,7 @@ import json
 from .decorators import rate_limit, rate_limit_api
 from .models import ConsentimientoDatos
 from django.views.decorators.csrf import csrf_protect
+from django.conf import settings
 
 @login_required
 def politica_privacidad(request):
@@ -70,6 +71,12 @@ def aceptar_privacidad(request):
 @login_required
 def entrenar_modelo(request, proyecto_id):
     """Entrena el modelo de IA para un proyecto"""
+    if not settings.IA_HABILITADA:
+        return JsonResponse({
+            'status': 'error',
+            'message': '⚠️ IA deshabilitada en configuración'
+        }, status=400)
+    
     try:
         predictor = PredictorEnergia(proyecto_id)
         resultado = predictor.entrenar(dias_historial=365)
@@ -90,10 +97,15 @@ def entrenar_modelo(request, proyecto_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
-
 @login_required
 def predecir(request, proyecto_id):
     """Obtiene predicciones para un proyecto"""
+    if not settings.IA_HABILITADA:
+        return JsonResponse({
+            'status': 'error',
+            'message': '⚠️ IA deshabilitada en configuración'
+        }, status=400)
+    
     dias = int(request.GET.get('dias', 7))
     
     try:
@@ -103,7 +115,7 @@ def predecir(request, proyecto_id):
         if 'error' in predicciones:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Modelo no entrenado. Primero entrena el modelo.'
+                'message': predicciones['error']
             }, status=400)
         
         return JsonResponse({
