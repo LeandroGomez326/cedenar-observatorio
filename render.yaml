@@ -20,9 +20,18 @@ services:
         fromDatabase:
           name: cedenar-db
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: cedenar-redis
+          property: connectionString
 
 databases:
   - name: cedenar-db
+    plan: free
+
+  - type: keyvalue
+    name: cedenar-redis
     plan: free
 
   - type: cron
@@ -36,3 +45,40 @@ databases:
         fromDatabase:
           name: cedenar-db
           property: connectionString
+
+
+  - type: cron
+    name: cedenar-monitor
+    runtime: python
+    schedule: "*/15 * * * *"  # Cada 15 minutos
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py monitor --alert
+    envVars:
+      - key: SITE_URL
+        value: https://cedenar-observatorio.onrender.com
+      - key: ALERT_EMAIL
+        value: admin@cedenar.gov.co
+      - key: SMTP_SERVER
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: leandrogomez326@gmail.com
+      - key: SMTP_PASSWORD
+        value: Leitogomez326*
+
+  - type: cron
+    name: cedenar-alertas
+    runtime: python
+    schedule: "0 8,18 * * *"  # 8 AM y 6 PM todos los días
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py verificar_alertas --tipo todas
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cedenar-db
+          property: connectionString
+      - key: EMAIL_USER
+        sync: false  
+      - key: EMAIL_PASSWORD
+        sync: false  
