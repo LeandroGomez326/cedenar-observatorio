@@ -202,3 +202,17 @@ if not os.path.exists(MODELOS_IA_PATH):
 RATELIMIT_ENABLE = True
 RATELIMIT_USE_CACHE = 'default'
 RATELIMIT_VIEW = 'monitoreo.views.rate_limited'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.environ.get('REDIS_URL', 'redis://localhost:6379'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Para rate limiting
+RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_ENABLE = True
