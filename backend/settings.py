@@ -171,7 +171,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'monitoreo.consentimiento_middleware.ConsentimientoMiddleware',
+    # 'monitoreo.consentimiento_middleware.ConsentimientoMiddleware', #
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -274,7 +274,7 @@ CACHES = {
 
 # Para rate limiting
 RATELIMIT_USE_CACHE = 'default'
-RATELIMIT_ENABLE = True
+RATELIMIT_ENABLE = False
 
 # ============================================
 # CONFIGURACIÓN DE EMAIL
