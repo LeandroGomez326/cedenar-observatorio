@@ -59,4 +59,6 @@ urlpatterns = [
     path('api/ia/verificar/', views.verificar_modelos_ia, name='verificar_ia'),
     path('privacidad/', views.politica_privacidad, name='politica_privacidad'),
     path('aceptar-privacidad/', views.aceptar_privacidad, name='aceptar_privacidad'),
+    path('api/ia/entrenar/<int:proyecto_id>/', views.entrenar_modelo, name='entrenar_ia'),
+    path('api/ia/predecir/<int:proyecto_id>/', views.predecir, name='predecir_ia'),
 ]
