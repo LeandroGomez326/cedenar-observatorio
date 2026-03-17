@@ -216,49 +216,12 @@ if 'RENDER' in os.environ:
     import oracledb
 
     WALLET_PATH = '/opt/render/project/src/wallet/Wallet_CEDENARDB'
-
-    print("🔍 Iniciando diagnóstico...")
-    print(f"🔍 WALLET_PATH: {WALLET_PATH}")
-    print(f"🔍 ¿Existe la carpeta? {os.path.exists(WALLET_PATH)}")
-    if os.path.exists(WALLET_PATH):
-        archivos = os.listdir(WALLET_PATH)
-        print(f"🔍 Archivos encontrados: {archivos}")
-
-        # Leer tnsnames.ora para ver los nombres disponibles
-        tns_path = os.path.join(WALLET_PATH, 'tnsnames.ora')
-        if os.path.exists(tns_path):
-            print("🔍 Contenido de tnsnames.ora:")
-            with open(tns_path, 'r') as f:
-                lines = f.readlines()
-                for line in lines[:10]:  # primeras 10 líneas
-                    if '=' in line and not line.strip().startswith('#'):
-                        print(f"   → {line.strip()}")
-        else:
-            print("❌ tnsnames.ora NO encontrado")
-
-        # Probar conexión con cada nombre de servicio
-        servicios = ['cedenardb_low', 'cedenardb_medium', 'cedenardb_high']
-        for servicio in servicios:
-            try:
-                print(f"🔌 Probando conexión con: {servicio}")
-                connection = oracledb.connect(
-                    user='ADMIN',
-                    password='Leitogomez326*',
-                    dsn=servicio,
-                    config_dir=WALLET_PATH,
-                    wallet_location=WALLET_PATH,
-                    wallet_password='Leitogomez326*'
-                )
-                print(f"✅ Conectado con {servicio}")
-                connection.close()
-                break
-            except Exception as e:
-                print(f"❌ Falló con {servicio}: {e}")
+    os.environ['TNS_ADMIN'] = WALLET_PATH
 
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.oracle',
-            'NAME': 'cedenardb_high',
+            'NAME': 'cedenardb_low',
             'USER': 'ADMIN',
             'PASSWORD': 'Leitogomez326*',
             'HOST': '',
@@ -310,16 +273,7 @@ else:
             }
         }
 
-if 'RENDER' in os.environ:
-    import subprocess
-    import requests
 
-    print("🌐 Obteniendo IP de salida de Render...")
-    try:
-        ip = requests.get('https://api.ipify.org', timeout=10).text
-        print(f"✅ IP de Render: {ip}")
-    except Exception as e:
-        print(f"❌ Error obteniendo IP: {e}")
 
 # ============================================
 # CACHÉ Y RATE LIMITING
