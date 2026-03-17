@@ -211,18 +211,35 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 USAR_ORACLE_LOCAL = True
 
 if 'RENDER' in os.environ:
+    # ===== PRODUCCIÓN (Render) con Oracle Cloud =====
     import os
     import oracledb
+
+    # Obtener la ruta del directorio donde está este archivo (settings.py)
+    # y desde ahí subir hasta la raíz del proyecto
+    SETTINGS_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_ROOT = os.path.dirname(SETTINGS_DIR)  # backend/
+    BASE_DIR = os.path.dirname(PROJECT_ROOT)      # raíz del proyecto
 
     WALLET_PATH = os.path.join(BASE_DIR, 'wallet', 'Wallet_CEDENARDB')
     os.environ['TNS_ADMIN'] = WALLET_PATH
 
     # DEBUG: verificar que la carpeta existe
+    print("🔍 SETTINGS_DIR:", SETTINGS_DIR)
+    print("🔍 PROJECT_ROOT:", PROJECT_ROOT)
     print("🔍 BASE_DIR:", BASE_DIR)
     print("🔍 WALLET_PATH:", WALLET_PATH)
     print("🔍 ¿Existe la carpeta?", os.path.exists(WALLET_PATH))
     if os.path.exists(WALLET_PATH):
         print("🔍 Archivos en el wallet:", os.listdir(WALLET_PATH))
+    else:
+        # Buscar recursivamente por si está en otra ubicación
+        for root, dirs, files in os.walk(BASE_DIR):
+            if 'tnsnames.ora' in files:
+                print(f"✅ ¡Encontrado tnsnames.ora en {root}!")
+                WALLET_PATH = root
+                os.environ['TNS_ADMIN'] = WALLET_PATH
+                break
 
     DATABASES = {
         'default': {
@@ -234,7 +251,6 @@ if 'RENDER' in os.environ:
             'PORT': '',
         }
     }
-
 else:
     # ===== DESARROLLO LOCAL =====
     if USAR_ORACLE_LOCAL:
