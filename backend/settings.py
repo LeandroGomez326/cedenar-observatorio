@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'monitoreo',
 ]
 
@@ -208,7 +209,7 @@ if LOGS_CREADOS:
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Variable para elegir base local (True = Oracle, False = SQLite)
-USAR_ORACLE_LOCAL = True
+USAR_ORACLE_LOCAL = False
 
 if 'RENDER' in os.environ:
     # ===== PRODUCCIÓN (Render) con Oracle Cloud =====
