@@ -211,24 +211,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 USAR_ORACLE_LOCAL = True
 
 if 'RENDER' in os.environ:
-    # ===== PRODUCCIÓN (Render) con Oracle Cloud =====
     import os
     import oracledb
 
-    # El wallet está en el repositorio, en wallet/Wallet_CEDENARDB
     WALLET_PATH = os.path.join(BASE_DIR, 'wallet', 'Wallet_CEDENARDB')
     os.environ['TNS_ADMIN'] = WALLET_PATH
+
+    # DEBUG: verificar que la carpeta existe
+    print("🔍 BASE_DIR:", BASE_DIR)
+    print("🔍 WALLET_PATH:", WALLET_PATH)
+    print("🔍 ¿Existe la carpeta?", os.path.exists(WALLET_PATH))
+    if os.path.exists(WALLET_PATH):
+        print("🔍 Archivos en el wallet:", os.listdir(WALLET_PATH))
 
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.oracle',
-            'NAME': 'cedenardb_high',  # o low, medium
+            'NAME': 'cedenardb_high',
             'USER': 'ADMIN',
             'PASSWORD': 'Leitogomez326*',
             'HOST': '',
             'PORT': '',
         }
     }
+
 else:
     # ===== DESARROLLO LOCAL =====
     if USAR_ORACLE_LOCAL:
