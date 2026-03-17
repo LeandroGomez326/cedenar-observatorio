@@ -61,4 +61,5 @@ urlpatterns = [
     path('aceptar-privacidad/', views.aceptar_privacidad, name='aceptar_privacidad'),
     path('api/ia/entrenar/<int:proyecto_id>/', views.entrenar_modelo, name='entrenar_ia'),
     path('api/ia/predecir/<int:proyecto_id>/', views.predecir, name='predecir_ia'),
+    path('mi-ip/', views.mi_ip, name='mi_ip'),
 ]
