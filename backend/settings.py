@@ -215,15 +215,13 @@ if 'RENDER' in os.environ:
     import os
     import oracledb
 
-    # Ruta FIJA que ya sabemos que funciona (según los logs)
     WALLET_PATH = '/opt/render/project/src/wallet/Wallet_CEDENARDB'
-    os.environ['TNS_ADMIN'] = WALLET_PATH
 
     # Verificación
-    print("🔍 Usando wallet en:", WALLET_PATH)
-    print("🔍 ¿Existe la carpeta?", os.path.exists(WALLET_PATH))
+    print(f"🔍 Usando wallet en: {WALLET_PATH}")
+    print(f"🔍 ¿Existe la carpeta? {os.path.exists(WALLET_PATH)}")
     if os.path.exists(WALLET_PATH):
-        print("🔍 Archivos:", os.listdir(WALLET_PATH))
+        print(f"🔍 Archivos: {os.listdir(WALLET_PATH)}")
 
     DATABASES = {
         'default': {
@@ -233,6 +231,11 @@ if 'RENDER' in os.environ:
             'PASSWORD': 'Leitogomez326*',
             'HOST': '',
             'PORT': '',
+            'OPTIONS': {
+                'config_dir': WALLET_PATH,
+                'wallet_location': WALLET_PATH,
+                'wallet_password': 'Leitogomez326*',  # La contraseña que usaste para el wallet
+            },
         }
     }
 else:
