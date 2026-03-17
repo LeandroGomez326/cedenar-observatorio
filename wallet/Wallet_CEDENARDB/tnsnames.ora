@@ -1,0 +1,12 @@
+cedenardb_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-bogota-1.oraclecloud.com))(connect_data=(service_name=g29738453ce8dae_cedenardb_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cedenardb_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-bogota-1.oraclecloud.com))(connect_data=(service_name=g29738453ce8dae_cedenardb_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cedenardb_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-bogota-1.oraclecloud.com))(connect_data=(service_name=g29738453ce8dae_cedenardb_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cedenardb_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-bogota-1.oraclecloud.com))(connect_data=(service_name=g29738453ce8dae_cedenardb_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+cedenardb_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.sa-bogota-1.oraclecloud.com))(connect_data=(service_name=g29738453ce8dae_cedenardb_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+
