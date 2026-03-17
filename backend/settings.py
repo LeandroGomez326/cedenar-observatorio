@@ -310,6 +310,17 @@ else:
             }
         }
 
+if 'RENDER' in os.environ:
+    import subprocess
+    import requests
+
+    print("🌐 Obteniendo IP de salida de Render...")
+    try:
+        ip = requests.get('https://api.ipify.org', timeout=10).text
+        print(f"✅ IP de Render: {ip}")
+    except Exception as e:
+        print(f"❌ Error obteniendo IP: {e}")
+
 # ============================================
 # CACHÉ Y RATE LIMITING
 # ============================================
