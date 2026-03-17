@@ -209,7 +209,7 @@ if LOGS_CREADOS:
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Variable para elegir base local (True = Oracle, False = SQLite)
-USAR_ORACLE_LOCAL = False
+USAR_ORACLE_LOCAL = True
 
 if 'RENDER' in os.environ:
     # ===== PRODUCCIÓN (Render) con Oracle Cloud =====
@@ -302,6 +302,22 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER', 'leandrogomez326@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'feiv sxnh hvpy ijuu')
 DEFAULT_FROM_EMAIL = 'Observatorio CEDENAR <noreply@cedenar.gov.co>'
+
+# ============================================
+# CHANNELS (WebSockets)
+# ============================================
+ASGI_APPLICATION = 'backend.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # para desarrollo
+        # Para producción con Redis (recomendado):
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        # },
+    },
+}
 
 # ============================================
 # IA
