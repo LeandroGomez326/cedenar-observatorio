@@ -31,6 +31,21 @@ from .decorators import rate_limit, rate_limit_api
 from .models import ConsentimientoDatos
 from django.views.decorators.csrf import csrf_protect
 from django.conf import settings
+import requests
+from django.http import JsonResponse
+
+def mi_ip(request):
+    """
+    Endpoint temporal para conocer la IP de salida de Render.
+    """
+    try:
+        ip = requests.get('https://api.ipify.org').text
+        return JsonResponse({
+            'ip': ip,
+            'mensaje': 'Agregá esta IP a la ACL de Oracle Cloud como XXX.XXX.XXX.XXX/32'
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
 def politica_privacidad(request):
@@ -984,19 +999,3 @@ def api_lecturas_por_periodo(request):
         })
     
     return JsonResponse({'proyectos': resultado})
-
-import requests
-from django.http import JsonResponse
-
-def mi_ip(request):
-    """
-    Endpoint temporal para conocer la IP de salida de Render.
-    """
-    try:
-        ip = requests.get('https://api.ipify.org').text
-        return JsonResponse({
-            'ip': ip,
-            'mensaje': 'Agregá esta IP a la ACL de Oracle Cloud como XXX.XXX.XXX.XXX/32'
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
