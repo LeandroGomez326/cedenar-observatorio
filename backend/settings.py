@@ -205,26 +205,20 @@ if LOGS_CREADOS:
 # BASES DE DATOS - PostgreSQL en producción
 # ============================================
 
+# ============================================
+# BASES DE DATOS - PostgreSQL en producción
+# ============================================
+
 if 'RENDER' in os.environ:
-    # ===== PRODUCCIÓN (Render) con PostgreSQL =====
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL:
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600
-            )
-        }
-    else:
-        print("⚠️ DATABASE_URL no está configurada. Usando SQLite temporal.")
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600
+        )
+    }
 else:
-    # ===== DESARROLLO LOCAL =====
+    # Desarrollo local
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
