@@ -202,79 +202,25 @@ if LOGS_CREADOS:
     }
 
 # ============================================
-# BASES DE DATOS
+# BASES DE DATOS - PostgreSQL en producción
 # ============================================
 
-# Ruta base del proyecto
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Variable para elegir base local (True = Oracle, False = SQLite)
-USAR_ORACLE_LOCAL = True
-
 if 'RENDER' in os.environ:
-    # ===== PRODUCCIÓN (Render) con Oracle Cloud =====
-    import os
-    import oracledb
-
-    WALLET_PATH = '/opt/render/project/src/wallet/Wallet_CEDENARDB'
-    os.environ['TNS_ADMIN'] = WALLET_PATH
-
+    # ===== PRODUCCIÓN (Render) con PostgreSQL =====
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.oracle',
-            'NAME': 'cedenardb_low',
-            'USER': 'ADMIN',
-            'PASSWORD': 'Leitogomez326*',
-            'HOST': '',
-            'PORT': '',
-            'OPTIONS': {
-                'config_dir': WALLET_PATH,
-                'wallet_location': WALLET_PATH,
-                'wallet_password': 'Leitogomez326*',
-            },
-        }
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600
+        )
     }
 else:
-    # ===== DESARROLLO LOCAL =====
-    if USAR_ORACLE_LOCAL:
-        import os
-        import oracledb
-
-        # Ruta local del wallet (la que ya tenés)
-        os.environ['TNS_ADMIN'] = 'C:/oracle/wallet/Wallet_CEDENARDB'
-
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.oracle',
-                'NAME': 'cedenardb_high',
-                'USER': 'ADMIN',
-                'PASSWORD': 'Leitogomez326*',
-                'HOST': '',
-                'PORT': '',
-            },
-            'sqlite': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
+    # ===== DESARROLLO LOCAL (SQLite para pruebas rápidas) =====
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
-    else:
-        # ----- SQLite (desarrollo rápido) -----
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            },
-            'oracle': {
-                'ENGINE': 'django.db.backends.oracle',
-                'NAME': 'cedenardb_high',
-                'USER': 'ADMIN',
-                'PASSWORD': 'Leitogomez326*',
-                'HOST': '',
-                'PORT': '',
-            }
-        }
-
-
+    }
 
 # ============================================
 # CACHÉ Y RATE LIMITING
@@ -300,7 +246,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER', 'leandrogomez326@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', 'feiv sxnh hvpy ijuu')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
 DEFAULT_FROM_EMAIL = 'Observatorio CEDENAR <noreply@cedenar.gov.co>'
 
 # ============================================
@@ -308,14 +254,10 @@ DEFAULT_FROM_EMAIL = 'Observatorio CEDENAR <noreply@cedenar.gov.co>'
 # ============================================
 ASGI_APPLICATION = 'backend.asgi.application'
 
+# Usar InMemoryChannelLayer para desarrollo y producción pequeña
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # para desarrollo
-        # Para producción con Redis (recomendado):
-        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        # 'CONFIG': {
-        #     'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-        # },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
